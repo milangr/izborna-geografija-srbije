@@ -13,7 +13,7 @@ from add_districts import source_rows
 
 SPECIAL = {
     "33000": ("special-abroad", "Inostranstvo"),
-    "55001": ("special-prisons", "Zavodi za izvršenje sankcija"),
+    "55001": ("special-prisons", "Kazneni zavodi"),
 }
 SUM_FIELDS = ("upisani_biraci", "glasali_biraci", "listici_u_kutiji",
               "vazeci_glasovi", "nevazeci_listici", "lista_1", "lista_3")

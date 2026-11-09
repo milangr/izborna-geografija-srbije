@@ -25,7 +25,7 @@ window.specialResults = [
   },
   {
     "id": "special-prisons",
-    "name": "Zavodi za izvršenje sankcija",
+    "name": "Kazneni zavodi",
     "region": "55001",
     "district": null,
     "listVotes": 1841,

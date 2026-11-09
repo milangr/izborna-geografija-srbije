@@ -28,7 +28,7 @@
   const tableRegions = {
     ...regions,
     '33000': 'Inostranstvo',
-    '55001': 'Zavodi za izvršenje sankcija',
+    '55001': 'Kazneni zavodi',
   };
   const selectedRegions = new Set(Object.keys(regions));
   const shortRegions = {

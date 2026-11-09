@@ -27,7 +27,7 @@ REGIONS = {
     "RS22": "Južna i Istočna Srbija",
     "RS23": "Kosovo i Metohija",
     "33000": "Inostranstvo",
-    "55001": "Zavodi za izvršenje sankcija",
+    "55001": "Kazneni zavodi",
 }
 
 # Same keys and order as the table in app.js. Percent values in JS are 0–100;
