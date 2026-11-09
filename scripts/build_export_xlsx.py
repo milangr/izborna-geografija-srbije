@@ -26,8 +26,8 @@ REGIONS = {
     "RS21": "Šumadija i Zapadna Srbija",
     "RS22": "Južna i Istočna Srbija",
     "RS23": "Kosovo i Metohija",
-    "33000": "Inostranstvo",
-    "55001": "Kazneni zavodi",
+    "33000": "Ostalo",
+    "55001": "Ostalo",
 }
 
 # Same keys and order as the table in app.js. Percent values in JS are 0–100;
@@ -145,6 +145,8 @@ def make_sheet(rows):
             value = entry.get(key)
             if key == "region":
                 value = REGIONS.get(value, value)
+            elif key == "district" and entry.get("region") in ("33000", "55001"):
+                value = entry["name"]
             cell(row, column, value, kind)
     total_row = ET.SubElement(sheet_data, f"{{{NS}}}row", {"r": str(len(rows) + 2)})
     cell(total_row, 1, "Σ", total=True)

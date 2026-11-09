@@ -5,7 +5,7 @@
   const data = [...window.municipalityData.filter(entry => entry.name !== 'Beograd'),
     ...window.beogradResults, ...kosovoResults.filter(entry => entry.mapped)];
   const specialResults = [...kosovoResults.filter(entry => !entry.mapped).map(entry => ({...entry, special: true})),
-    ...(window.specialResults || [])];
+    ...(window.specialResults || []).map(entry => ({...entry, region: 'OTHER', district: entry.name}))];
   const tableData = [...data, ...specialResults];
   for (const entry of tableData) {
     entry.snsShare = Number.isFinite(entry.snsVotes) && Number.isFinite(entry.validVotes) && entry.validVotes > 0
@@ -13,7 +13,7 @@
     entry.voteDifference = Number.isFinite(entry.listVotes) && Number.isFinite(entry.snsVotes)
       ? entry.listVotes - entry.snsVotes : null;
   }
-  const byId = new Map(data.map(entry => [entry.id, entry]));
+  const byId = new Map(tableData.map(entry => [entry.id, entry]));
   const number = new Intl.NumberFormat('sr-Latn-RS', {maximumFractionDigits: 1});
   const wholeNumber = new Intl.NumberFormat('sr-Latn-RS', {maximumFractionDigits: 0});
   const signedWholeNumber = new Intl.NumberFormat('sr-Latn-RS', {maximumFractionDigits: 0, signDisplay: 'exceptZero'});
@@ -24,11 +24,11 @@
     RS21: 'Šumadija i Zapadna Srbija',
     RS22: 'Južna i Istočna Srbija',
     RS23: 'Kosovo i Metohija',
+    OTHER: 'Ostalo',
   };
   const tableRegions = {
     ...regions,
-    '33000': 'Inostranstvo',
-    '55001': 'Kazneni zavodi',
+    OTHER: 'Ostalo',
   };
   const selectedRegions = new Set(Object.keys(regions));
   const shortRegions = {
@@ -37,10 +37,13 @@
     RS21: 'Šum. i Zap. Srb.',
     RS22: 'Juž. i Ist. Srb.',
     RS23: 'Kosovo i Metohija',
+    OTHER: 'Ostalo',
   };
   const get = id => document.getElementById(id);
   const map = document.querySelector('.map');
   const stage = document.querySelector('.map-stage');
+  const specialMapControls = stage.querySelector('.map-specials');
+  const mappedSpecialResults = specialResults.filter(entry => entry.region === 'OTHER');
   const selection = map.querySelector('.selection');
   const hoverOutline = map.querySelector('.hover-outline');
   const tooltip = stage.querySelector('.map-tooltip');
@@ -108,6 +111,7 @@
   let left = 0;
   let top = 0;
   let selected = null;
+  let selectedSpecial = null;
   let drag = null;
   let visualFilter = null;
   let scatter = null;
@@ -168,7 +172,7 @@
     const scope = readout.closest('.panel').querySelector('.readout-scope');
     const scopeText = !entry ? 'Nema podataka' : regionSummary
       ? entry.summaryLabel + (visualFilter ? ' · filtrirani zbir' : ' · zbir')
-      : entry.name + ' · opština';
+      : entry.name + (entry.special ? ' · zbirna jedinica' : ' · opština');
     scope.textContent = scopeText;
     scope.title = scopeText;
     const state = [entry?.id || '', averageRevision, regionSummary,
@@ -265,6 +269,32 @@
     regionLegend.append(item);
   }
 
+  const specialMapButtons = new Map();
+  for (const entry of mappedSpecialResults) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'map-special-button';
+    button.setAttribute('aria-label', 'Prikaži ' + entry.name + ' na mapi');
+    button.setAttribute('aria-pressed', 'false');
+    const circle = document.createElement('span');
+    circle.className = 'map-special-circle';
+    circle.setAttribute('aria-hidden', 'true');
+    const label = document.createElement('span');
+    label.textContent = entry.name;
+    button.append(circle, label);
+    button.addEventListener('click', () => chooseSpecial(entry));
+    button.addEventListener('pointerenter', () => {
+      if (isVisible(entry.id)) showMapValues(entry);
+    });
+    button.addEventListener('pointerleave', () => showMapValues(selectedSpecial || byId.get(selected?.id)));
+    button.addEventListener('focus', () => {
+      if (isVisible(entry.id)) showMapValues(entry);
+    });
+    button.addEventListener('blur', () => showMapValues(selectedSpecial || byId.get(selected?.id)));
+    specialMapControls.append(button);
+    specialMapButtons.set(entry.id, button);
+  }
+
   function updateMapMetrics() {
     const color = mapColor.value;
     const texture = mapTexture.value;
@@ -281,6 +311,16 @@
         ? metricClass(entry[texture], metrics[texture].breaks) : null;
       get(entry.id + '-texture').setAttribute('fill', densityClass == null
         ? 'none' : 'url(#rs-municipal-dots-' + densityClass + ')');
+    }
+    for (const entry of mappedSpecialResults) {
+      const circle = specialMapButtons.get(entry.id).querySelector('.map-special-circle');
+      const colorClass = color !== 'region' && Number.isFinite(entry[color])
+        ? 'v' + metricClass(entry[color], metrics[color].breaks) : '';
+      const textureClass = Number.isFinite(entry[texture])
+        ? metricClass(entry[texture], metrics[texture].breaks) : null;
+      circle.className = 'map-special-circle' + (color === 'region' ? ' is-region-color' : '')
+        + (colorClass ? ' ' + colorClass : '') + (textureClass == null ? ' no-texture' : '');
+      if (textureClass != null) circle.style.setProperty('--dot-spacing', [11, 7, 4][textureClass] + 'px');
     }
     colorMatrix.hidden = color === 'region';
     regionLegend.hidden = color !== 'region';
@@ -312,7 +352,7 @@
       });
     }
     hideTooltip();
-    updateMapReadout(byId.get(selected?.id));
+    updateMapReadout(selectedSpecial || byId.get(selected?.id));
   }
 
   function updateMapReadout(entry) {
@@ -324,7 +364,7 @@
     showPlotValues(mapReadout, entry || summary, ['map-color', 'map-texture'], Boolean(summary));
   }
   function summarizeSelectedRegions() {
-    const entries = data.filter(entry => isVisible(entry.id));
+    const entries = tableData.filter(entry => isVisible(entry.id));
     if (!entries.length) return null;
     const codes = [...selectedRegions];
     const summaryLabel = codes.length === 1 ? regions[codes[0]]
@@ -417,7 +457,6 @@
   districtFilter.add(new Option('Svi okruzi', ''));
   const filterButtons = new Map();
   const selectedRows = new Set();
-  const clearSelection = get('clear-table-selection');
   let visibleRows = [];
   selectAll.addEventListener('change', () => {
     for (const entry of visibleRows.filter(entry => !entry.special)) {
@@ -516,6 +555,14 @@
     popup.addEventListener('input', renderTable);
   }
 
+  const updateFrozenColumns = () => {
+    table.style.setProperty('--selection-column-width', selectionHeading.getBoundingClientRect().width + 'px');
+    table.style.setProperty('--number-column-width', numberHeading.getBoundingClientRect().width + 'px');
+  };
+  const frozenColumnObserver = new ResizeObserver(updateFrozenColumns);
+  frozenColumnObserver.observe(selectionHeading);
+  frozenColumnObserver.observe(numberHeading);
+
   function renderTable() {
     for (const [key, header] of headers) {
       if (key === sortKey) header.setAttribute('aria-sort', ascending ? 'ascending' : 'descending');
@@ -554,7 +601,8 @@
       const row = document.createElement('tr');
       row.dataset.unitId = entry.id;
       row.classList.toggle('is-special', Boolean(entry.special));
-      row.classList.toggle('is-current', selected?.id === entry.id);
+      row.classList.toggle('is-mapped-special', entry.region === 'OTHER');
+      row.classList.toggle('is-current', selected?.id === entry.id || selectedSpecial?.id === entry.id);
       if (!entry.special) row.addEventListener('click', event => {
         if (event.target.closest('input')) return;
         if (syncFilters.checked && selectedRows.size && !selectedRows.has(entry.id)) {
@@ -564,6 +612,7 @@
         }
         choose(get(entry.id));
       });
+      else if (entry.region === 'OTHER') row.addEventListener('click', () => chooseSpecial(entry));
       const selectCell = row.insertCell();
       selectCell.className = 'row-select';
       const numberCell = row.insertCell();
@@ -585,9 +634,8 @@
       const name = document.createElement('th');
       name.scope = 'row';
       name.className = 'row-name';
-      if (entry.special) {
+      if (entry.special && entry.region !== 'OTHER') {
         name.textContent = entry.name;
-        name.title = 'Zbirni red bez prikaza na mapi i XY grafikonu';
       } else {
         const nameButton = document.createElement('button');
         nameButton.type = 'button';
@@ -686,12 +734,13 @@
 
   function updateTableStatus() {
     const selectable = visibleRows.filter(entry => !entry.special);
+    const visibleSpecial = visibleRows.filter(entry => entry.region === 'OTHER');
     const visibleSelected = selectable.filter(entry => selectedRows.has(entry.id)).length;
     selectAll.checked = selectable.length > 0 && visibleSelected === selectable.length;
     selectAll.indeterminate = visibleSelected > 0 && visibleSelected < selectable.length;
     selectAll.disabled = selectable.length === 0;
-    clearSelection.disabled = selectedRows.size === 0;
-    applyVisualFilter(selectedRows.size ? selectable.filter(entry => selectedRows.has(entry.id)) : selectable);
+    applyVisualFilter([...visibleSpecial,
+      ...(selectedRows.size ? selectable.filter(entry => selectedRows.has(entry.id)) : selectable)]);
   }
 
   syncFilters.addEventListener('change', updateTableStatus);
@@ -702,20 +751,17 @@
     for (const inputs of rangeFilters.values()) for (const input of inputs) input.value = '';
     renderTable();
   });
-  clearSelection.addEventListener('click', () => {
-    selectedRows.clear();
-    renderTable();
-  });
-
   function applyVisualFilter(visible) {
     visualFilter = syncFilters.checked ? new Set(visible.map(entry => entry.id)) : null;
     refreshMetricAverages();
     if (selected && !isVisible(selected.id)) choose(null);
+    if (selectedSpecial && !isVisible(selectedSpecial.id)) choose(null);
     for (const entry of data) {
       const filtered = !isVisible(entry.id);
       get(entry.id).classList.toggle('is-filtered', filtered);
       get(entry.id + '-texture').classList.toggle('is-filtered', filtered);
     }
+    for (const entry of mappedSpecialResults) specialMapButtons.get(entry.id).disabled = !isVisible(entry.id);
     scatter.applyFilter();
     hideTooltip();
     scatter.refreshAverages();
@@ -729,7 +775,7 @@
 
   function setHover(entry) {
     const hovered = entry && isVisible(entry.id) ? entry : null;
-    showMapValues(hovered || byId.get(selected?.id));
+    showMapValues(hovered || selectedSpecial || byId.get(selected?.id));
     scatter?.hover(hovered);
     const unit = hovered && get(hovered.id);
     hoverOutline.setAttribute('visibility', unit ? 'visible' : 'hidden');
@@ -747,6 +793,8 @@
   }
 
   function choose(unit) {
+    selectedSpecial = null;
+    for (const button of specialMapButtons.values()) button.setAttribute('aria-pressed', 'false');
     selected = unit && isVisible(unit.id) ? unit : null;
     const entry = byId.get(selected?.id);
     for (const row of tableBody.rows) row.classList.toggle('is-current', row.dataset.unitId === entry?.id);
@@ -755,6 +803,16 @@
     updateMapReadout(entry);
     if (!entry) return;
     selection.setAttribute('d', selected.getAttribute('d'));
+  }
+
+  function chooseSpecial(entry) {
+    if (!isVisible(entry.id)) return;
+    choose(null);
+    selectedSpecial = entry;
+    specialMapButtons.get(entry.id).setAttribute('aria-pressed', 'true');
+    for (const row of tableBody.rows) row.classList.toggle('is-current', row.dataset.unitId === entry.id);
+    scatter.select(entry);
+    showMapValues(entry);
   }
 
   function zoom(factor) {
@@ -856,6 +914,7 @@
     const axes = svgNode('g', {'aria-hidden': 'true'}, svg);
     const marks = svgNode('g', {'aria-hidden': 'true', 'clip-path': 'url(#scatter-plot-clip)'}, svg);
     const points = new Map();
+    const plotData = [...data, ...mappedSpecialResults];
     const sizeLegend = document.querySelector('.scatter-legend');
     const sizeLabel = get('scatter-size-label');
     let highlighted = null;
@@ -867,8 +926,8 @@
     let plot;
     let chartDrag = null;
 
-    for (const entry of data) {
-      const dot = svgNode('circle', {class: 'scatter-mark',
+    for (const entry of plotData) {
+      const dot = svgNode('circle', {class: 'scatter-mark' + (entry.special ? ' is-special' : ''),
         'data-unit-id': entry.id, 'data-region': entry.region}, marks);
       points.set(entry.id, dot);
     }
@@ -879,7 +938,7 @@
     }
 
     function axis(key, tickCount, start) {
-      const values = data.map(entry => entry[key]).filter(Number.isFinite);
+      const values = plotData.map(entry => entry[key]).filter(Number.isFinite);
       const isPercent = metrics[key].unit === '%';
       const lower = values.length ? Math.min(...values) : 0;
       const upper = values.length ? Math.max(...values) : 1;
@@ -943,7 +1002,7 @@
       text((left + right) / 2, h - 12, metricLabel(xKey), {'text-anchor': 'middle', class: 'axis-title'});
       const midY = (top + bottom) / 2;
       text(16, midY, metricLabel(yKey), {transform: 'rotate(-90 16 ' + midY + ')', 'text-anchor': 'middle', class: 'axis-title'});
-      for (const entry of data) {
+      for (const entry of plotData) {
         const dot = points.get(entry.id);
         dot.setAttribute('cx', Number.isFinite(entry[xKey]) ? x(entry[xKey]) : -10000);
         dot.setAttribute('cy', Number.isFinite(entry[yKey]) ? y(entry[yKey]) : -10000);
@@ -1043,9 +1102,9 @@
     function updateMetrics() {
       const sizeKey = sizeControl.value;
       const colorKey = colorControl.value;
-      const maxSize = Math.max(...data.map(entry => entry[sizeKey]).filter(Number.isFinite));
+      const maxSize = Math.max(...plotData.map(entry => entry[sizeKey]).filter(Number.isFinite));
       const radius = value => Number.isFinite(value) ? 18 * (value / maxSize) ** .3 : 0;
-      for (const entry of [...data].sort((a, b) => b[sizeKey] - a[sizeKey])) {
+      for (const entry of [...plotData].sort((a, b) => b[sizeKey] - a[sizeKey])) {
         const dot = points.get(entry.id);
         dot.setAttribute('r', radius(entry[sizeKey]));
         if (colorKey === 'region') delete dot.dataset.level;
@@ -1097,7 +1156,7 @@
       get('scatter-description').textContent = 'X osa: ' + metricLabel(xKey) + '. Y osa: ' + metricLabel(yKey) +
         '. Veličina: ' + metricLabel(sizeKey) + '. Boja: ' + (colorKey === 'region' ? 'statistička regija' : metricLabel(colorKey)) +
         '. Horizontalna referentna linija: ' + benchmarkLabel(yKey) + ' — ' + metricValue({[yKey]: metricAverages[yKey]}, yKey) +
-        '. Izaberi krug za tačne vrijednosti opštine ili grada.';
+        '. Izaberi krug za tačne vrijednosti opštine, Inostranstva ili Kaznenih zavoda.';
       tip.hidden = true;
       draw();
       select(currentEntry);
@@ -1148,7 +1207,8 @@
         return;
       }
       const entry = entryAt(event);
-      choose(entry ? get(entry.id) : null);
+      if (entry?.region === 'OTHER') chooseSpecial(entry);
+      else choose(entry ? get(entry.id) : null);
       if (!entry) hideScatterTooltip();
       else if (scale > 1) zoom(1);
     });
@@ -1187,7 +1247,7 @@
       outline.classList.toggle('is-filtered', !selectedRegions.has(outline.dataset.region));
     }
     applyVisualFilter(visibleRows);
-    showMapValues(byId.get(selected?.id));
+    showMapValues(selectedSpecial || byId.get(selected?.id));
   }
   for (const [code, name] of Object.entries(regions)) {
     const option = document.createElement('div');
