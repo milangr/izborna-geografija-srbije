@@ -569,6 +569,23 @@
         if (key === 'region' || key === 'district') {
           cell.className = key === 'region' ? 'region-cell' : 'district-cell';
           cell.title = key === 'region' ? tableRegions[entry.region] : entry.district || '';
+          if (entry[key]) {
+            const filterValue = document.createElement('button');
+            const filterControl = key === 'region' ? regionFilter : districtFilter;
+            const value = entry[key];
+            filterValue.type = 'button';
+            filterValue.className = 'table-filter-value';
+            filterValue.textContent = format(value);
+            filterValue.setAttribute('aria-label', 'Filtriraj po ' + (key === 'region' ? 'regiji' : 'okrugu') + ': ' + cell.title);
+            filterValue.setAttribute('aria-pressed', String(filterControl.value === value));
+            filterValue.addEventListener('click', event => {
+              event.stopPropagation();
+              filterControl.value = filterControl.value === value ? '' : value;
+              renderTable();
+            });
+            cell.append(filterValue);
+            continue;
+          }
         }
         cell.textContent = entry[key] == null ? '—' : format(entry[key]);
       }

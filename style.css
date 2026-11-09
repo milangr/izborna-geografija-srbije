@@ -203,6 +203,8 @@ select { display: block; width: 100%; margin-top: .75rem; padding: .4rem .55rem;
 #municipality-table tbody tr:hover { background: #eaf3fb; }
 #municipality-table .table-name-button { min-width: 0; min-height: 0; padding: 0; border: 0; background: transparent; font-weight: 650; text-align: left; color: #225c92; }
 #municipality-table .table-name-button:hover { text-decoration: underline; }
+#municipality-table .table-filter-value { min-width: 0; min-height: 0; padding: 0; border: 0; background: transparent; color: #225c92; text-align: left; }
+#municipality-table .table-filter-value:hover, #municipality-table .table-filter-value[aria-pressed="true"] { text-decoration: underline; }
 #municipality-table thead button { border: 0; background: transparent; min-height: 36px; padding: .15rem .2rem; line-height: 1.25; font-weight: 700; text-align: inherit; }
 .column-heading { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; padding-bottom: 1.4rem; }
 #municipality-table thead .column-filter-button { position: absolute; right: 0; bottom: 0; display: grid; place-items: center; width: 22px; min-width: 22px; height: 22px; min-height: 22px; padding: 0; color: #355f86; }
