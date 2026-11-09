@@ -40,6 +40,7 @@ COLUMNS = [
     ("listVotes", "Glasovi studentske liste", "integer"),
     ("snsShare", "Udio SNS liste (%)", "percent"),
     ("snsVotes", "Glasovi SNS liste", "integer"),
+    ("voteDifference", "Razlika glasova (studentska − SNS)", "signed_integer"),
     ("validVotes", "Važeći glasovi", "integer"),
     ("invalidShare", "Nevažeći listići (%)", "percent"),
     ("turnout", "Izlaznost (%)", "percent"),
@@ -75,9 +76,8 @@ def xml(element):
 def cell(row, column, value, kind="text", total=False):
     if value is None or isinstance(value, float) and not math.isfinite(value):
         return
-    style = {"text": 2, "integer": 3, "decimal": 4, "percent": 5}[kind]
-    if total:
-        style += 4
+    style = {"text": (2, 6), "integer": (3, 7), "decimal": (4, 8),
+             "percent": (5, 9), "signed_integer": (10, 11)}[kind][int(total)]
     item = ET.SubElement(row, f"{{{NS}}}c", {"r": f"{col_name(column)}{row.attrib['r']}", "s": str(style)})
     if kind == "text":
         item.set("t", "inlineStr")
@@ -88,8 +88,9 @@ def cell(row, column, value, kind="text", total=False):
 
 def make_styles():
     stylesheet = ET.Element(f"{{{NS}}}styleSheet")
-    formats = ET.SubElement(stylesheet, f"{{{NS}}}numFmts", {"count": "3"})
-    for identifier, pattern in [(164, "#,##0"), (165, "#,##0.0"), (166, "0.0%")]:
+    formats = ET.SubElement(stylesheet, f"{{{NS}}}numFmts", {"count": "4"})
+    for identifier, pattern in [(164, "#,##0"), (165, "#,##0.0"), (166, "0.0%"),
+                                (167, "+#,##0;-#,##0;0")]:
         ET.SubElement(formats, f"{{{NS}}}numFmt", {"numFmtId": str(identifier), "formatCode": pattern})
     fonts = ET.SubElement(stylesheet, f"{{{NS}}}fonts", {"count": "3"})
     for bold in (False, True, True):
@@ -109,9 +110,10 @@ def make_styles():
     for edge in ("left", "right", "top", "bottom", "diagonal"):
         ET.SubElement(border, f"{{{NS}}}{edge}")
     ET.SubElement(stylesheet, f"{{{NS}}}cellStyleXfs", {"count": "1"}).append(ET.Element(f"{{{NS}}}xf", {"numFmtId": "0", "fontId": "0", "fillId": "0", "borderId": "0"}))
-    xfs = ET.SubElement(stylesheet, f"{{{NS}}}cellXfs", {"count": "10"})
+    xfs = ET.SubElement(stylesheet, f"{{{NS}}}cellXfs", {"count": "12"})
     for font, fill, number_format in [(0, 0, 0), (1, 2, 0), (0, 0, 0), (0, 0, 164), (0, 0, 165), (0, 0, 166),
-                                      (2, 3, 0), (2, 3, 164), (2, 3, 165), (2, 3, 166)]:
+                                      (2, 3, 0), (2, 3, 164), (2, 3, 165), (2, 3, 166),
+                                      (0, 0, 167), (2, 3, 167)]:
         ET.SubElement(xfs, f"{{{NS}}}xf", {"numFmtId": str(number_format), "fontId": str(font),
                                               "fillId": str(fill), "borderId": "0", "xfId": "0",
                                               "applyNumberFormat": "1"})
@@ -122,12 +124,13 @@ def make_styles():
 
 def make_sheet(rows):
     sheet = ET.Element(f"{{{NS}}}worksheet")
-    ET.SubElement(sheet, f"{{{NS}}}dimension", {"ref": f"A1:T{len(rows) + 2}"})
+    last_column = col_name(len(COLUMNS) + 1)
+    ET.SubElement(sheet, f"{{{NS}}}dimension", {"ref": f"A1:{last_column}{len(rows) + 2}"})
     views = ET.SubElement(sheet, f"{{{NS}}}sheetViews")
     view = ET.SubElement(views, f"{{{NS}}}sheetView", {"workbookViewId": "0"})
     ET.SubElement(view, f"{{{NS}}}pane", {"xSplit": "3", "ySplit": "1", "topLeftCell": "D2", "activePane": "bottomRight", "state": "frozen"})
     cols = ET.SubElement(sheet, f"{{{NS}}}cols")
-    for index in range(1, 21):
+    for index in range(1, len(COLUMNS) + 2):
         width = 6 if index == 1 else 29 if index == 2 else 30 if index in (3, 4) else 17
         ET.SubElement(cols, f"{{{NS}}}col", {"min": str(index), "max": str(index), "width": str(width), "customWidth": "1"})
     sheet_data = ET.SubElement(sheet, f"{{{NS}}}sheetData")
@@ -154,12 +157,13 @@ def make_sheet(rows):
     ballots = total("ballotsInBox")
     totals["votes"] = 100 * totals["listVotes"] / valid if valid else None
     totals["snsShare"] = 100 * totals["snsVotes"] / valid if valid else None
+    totals["voteDifference"] = totals["listVotes"] - totals["snsVotes"]
     totals["invalidShare"] = 100 * total("invalidVotes") / ballots if ballots else None
     totals["turnout"] = 100 * totals["votersAttended"] / registered if registered else None
     totals["density"] = totals["population"] / totals["areaKm2"] if totals["areaKm2"] else None
     for column, (key, _, kind) in enumerate(COLUMNS, 2):
         cell(total_row, column, totals.get(key), kind, total=True)
-    ET.SubElement(sheet, f"{{{NS}}}autoFilter", {"ref": f"A1:T{len(rows) + 1}"})
+    ET.SubElement(sheet, f"{{{NS}}}autoFilter", {"ref": f"A1:{last_column}{len(rows) + 1}"})
     return xml(sheet)
 
 
@@ -175,6 +179,7 @@ def main():
         valid = entry.get("validVotes")
         sns = entry.get("snsVotes")
         entry["snsShare"] = 100 * sns / valid if sns is not None and valid else None
+        entry["voteDifference"] = entry["listVotes"] - sns if sns is not None else None
 
     workbook = ET.Element(f"{{{NS}}}workbook")
     sheets = ET.SubElement(workbook, f"{{{NS}}}sheets")

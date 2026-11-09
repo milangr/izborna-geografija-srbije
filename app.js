@@ -10,10 +10,13 @@
   for (const entry of tableData) {
     entry.snsShare = Number.isFinite(entry.snsVotes) && Number.isFinite(entry.validVotes) && entry.validVotes > 0
       ? 100 * entry.snsVotes / entry.validVotes : null;
+    entry.voteDifference = Number.isFinite(entry.listVotes) && Number.isFinite(entry.snsVotes)
+      ? entry.listVotes - entry.snsVotes : null;
   }
   const byId = new Map(data.map(entry => [entry.id, entry]));
   const number = new Intl.NumberFormat('sr-Latn-RS', {maximumFractionDigits: 1});
   const wholeNumber = new Intl.NumberFormat('sr-Latn-RS', {maximumFractionDigits: 0});
+  const signedWholeNumber = new Intl.NumberFormat('sr-Latn-RS', {maximumFractionDigits: 0, signDisplay: 'exceptZero'});
   const byName = new Intl.Collator('sr-Latn-RS');
   const regions = {
     RS11: 'Beogradski region',
@@ -118,6 +121,7 @@
     listVotes: {label: 'Glasovi studentske liste', breaks: [5000, 20000]},
     snsShare: {label: 'Udio SNS liste (%)', unit: '%', breaks: [35, 50], format: percent},
     snsVotes: {label: 'Glasovi SNS liste', breaks: [5000, 20000]},
+    voteDifference: {label: 'Razlika glasova (studentska − SNS)', breaks: [-1000, 1000], format: signedWholeNumber.format},
     validVotes: {label: 'Važeći glasovi', breaks: [10000, 40000]},
     invalidShare: {label: 'Nevažeći listići (%)', unit: '%', breaks: [1.2, 1.6], format: percent},
     turnout: {label: 'Izlaznost (%)', unit: '%', breaks: [50, 65], format: percent},
@@ -136,6 +140,7 @@
   const aggregateMetricLabels = {
     votes: 'Ukupni udio', snsShare: 'Ukupni udio', invalidShare: 'Ukupni udio',
     turnout: 'Ukupna izlaznost', density: 'Ukupna gustina', age65PlusShare: 'Ponderisani udio',
+    voteDifference: 'Zbirna razlika',
   };
   const metricAverages = {};
   let averageRevision = 0;
@@ -194,6 +199,10 @@
       ? 'Vrijednost iz zbirnih podataka za vidljive opštine.'
       : 'Aritmetički prosjek vidljivih opština i gradova.';
     note.textContent = benchmarkLabel(key) + ' ' + metricValue({[key]: average}, key);
+    if (key === 'voteDifference') {
+      value.append(note);
+      return;
+    }
     if (entry && Number.isFinite(entry[key])) {
       const current = entry[key];
       const point = document.createElement('span');
@@ -209,14 +218,18 @@
   }
   const metricClass = (value, [low, high]) => value < low ? 0 : value < high ? 1 : 2;
   function rangeLabels(key) {
-    const format = metrics[key].unit === '%' ? percent : compact.format;
+    const format = key === 'voteDifference' ? signedWholeNumber.format
+      : metrics[key].unit === '%' ? percent : compact.format;
     const [low, high] = metrics[key].breaks.map(format);
     return ['< ' + low, low + '–< ' + high, '≥ ' + high];
   }
   function metricSelect(id, defaultValue, includeRegions = false) {
     const select = get(id);
     if (includeRegions) select.add(new Option('Statistička regija', 'region'));
-    for (const key of Object.keys(metrics)) select.add(new Option(metricLabel(key), key));
+    for (const key of Object.keys(metrics)) {
+      if (id === 'scatter-size' && key === 'voteDifference') continue;
+      select.add(new Option(metricLabel(key), key));
+    }
     select.value = defaultValue;
     select.addEventListener('wheel', event => {
       if (event.ctrlKey || !event.deltaY) return;
@@ -336,6 +349,7 @@
       votes: ratio(sum('listVotes'), sum('validVotes')),
       snsShare: ratio(sum('snsVotes'), sum('validVotes')),
       listVotes: sum('listVotes'), snsVotes: sum('snsVotes'), validVotes: sum('validVotes'),
+      voteDifference: sum('listVotes') - sum('snsVotes'),
       invalidShare: ratio(sum('invalidVotes'), sum('ballotsInBox')),
       turnout: ratio(sum('votersAttended'), sum('registeredVoters')),
       votersAttended: sum('votersAttended'), registeredVoters: sum('registeredVoters'),
@@ -357,7 +371,8 @@
     ...Object.entries(metrics).map(([key, metric]) => ({
       key,
       label: metricLabel(key),
-      format: metric.unit === '%' ? percent
+      format: key === 'voteDifference' ? signedWholeNumber.format
+        : metric.unit === '%' ? percent
         : metric.unit === 'stan./km²' || metric.unit === 'km²' ? number.format : wholeNumber.format,
     })),
   ];
@@ -413,9 +428,27 @@
   });
   for (const [code, name] of Object.entries(regions)) regionFilter.add(new Option(name, code));
   for (const code of ['33000', '55001']) regionFilter.add(new Option(tableRegions[code], code));
-  for (const district of [...new Set(tableData.map(entry => entry.district).filter(Boolean))].sort(byName.compare)) {
-    districtFilter.add(new Option(district, district));
+  const districtRegions = new Map();
+  for (const entry of tableData) {
+    if (entry.district) districtRegions.set(entry.district, entry.region);
   }
+  for (const [code, name] of Object.entries(regions)) {
+    const districts = [...districtRegions].filter(([, region]) => region === code)
+      .map(([district]) => district).sort(byName.compare);
+    if (!districts.length) continue;
+    const group = document.createElement('optgroup');
+    group.label = name;
+    for (const district of districts) group.append(new Option(district, district));
+    districtFilter.append(group);
+  }
+  districtFilter.addEventListener('input', () => {
+    if (districtFilter.value && regionFilter.value && regionFilter.value !== districtRegions.get(districtFilter.value))
+      regionFilter.value = '';
+  });
+  regionFilter.addEventListener('input', () => {
+    if (districtFilter.value && regionFilter.value && regionFilter.value !== districtRegions.get(districtFilter.value))
+      districtFilter.value = '';
+  });
 
   for (const column of columns) {
     const heading = document.createElement('th');
@@ -628,6 +661,7 @@
       invalidShare: ballots ? percent(100 * invalid / ballots) : '—',
       listVotes: wholeNumber.format(list),
       snsVotes: wholeNumber.format(sns),
+      voteDifference: signedWholeNumber.format(list - sns),
       areaKm2: area ? number.format(area) : '—',
       votes: valid ? percent(100 * list / valid) : '—',
       snsShare: valid ? percent(100 * sns / valid) : '—',
