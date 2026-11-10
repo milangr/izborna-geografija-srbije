@@ -343,7 +343,16 @@
     const rows = mapLegend.querySelectorAll('tbody th');
     const textureRanges = rangeLabels(texture).reverse();
     textureRanges.forEach((label, index) => {
-      rows[index].textContent = label;
+      const bounds = label.split(' i ');
+      if (bounds.length === 2) {
+        const first = document.createElement('span');
+        first.className = 'range-line';
+        first.textContent = bounds[0];
+        const second = document.createElement('span');
+        second.className = 'range-line';
+        second.textContent = 'i ' + bounds[1];
+        rows[index].replaceChildren(first, second);
+      } else rows[index].textContent = label;
       rows[index].title = metricLabel(texture) + ': ' + label;
     });
     if (color !== 'region') {
@@ -1384,19 +1393,20 @@
   const regionPickerPanel = document.querySelector('.region-picker');
   const scatterRegions = document.querySelector('.scatter-regions');
   function alignPlotTops() {
-    mapLegend.style.marginBottom = '';
     scatterOptions.style.marginBottom = '';
     regionPickerPanel.style.minHeight = '';
     scatterRegions.style.minHeight = '';
     if (window.innerWidth <= 900) return;
-    const mapRowTop = regionPickerPanel.getBoundingClientRect().top;
-    const scatterRowTop = scatterRegions.getBoundingClientRect().top;
-    if (mapRowTop < scatterRowTop) mapLegend.style.marginBottom = scatterRowTop - mapRowTop + 'px';
-    else if (scatterRowTop < mapRowTop) scatterOptions.style.marginBottom = mapRowTop - scatterRowTop + 'px';
-    const rowHeight = Math.max(regionPickerPanel.getBoundingClientRect().height,
-      scatterRegions.getBoundingClientRect().height);
-    regionPickerPanel.style.minHeight = rowHeight + 'px';
-    scatterRegions.style.minHeight = rowHeight + 'px';
+    const mapLegendBottom = mapLegend.getBoundingClientRect().bottom;
+    const scatterOptionsBottom = scatterOptions.getBoundingClientRect().bottom;
+    if (scatterOptionsBottom < mapLegendBottom)
+      scatterOptions.style.marginBottom = mapLegendBottom - scatterOptionsBottom + 'px';
+    const mapRow = regionPickerPanel.getBoundingClientRect();
+    const scatterRow = scatterRegions.getBoundingClientRect();
+    if (mapRow.bottom < scatterRow.bottom)
+      regionPickerPanel.style.minHeight = mapRow.height + scatterRow.bottom - mapRow.bottom + 'px';
+    else if (scatterRow.bottom < mapRow.bottom)
+      scatterRegions.style.minHeight = scatterRow.height + mapRow.bottom - scatterRow.bottom + 'px';
   }
   const plotAlignmentObserver = new ResizeObserver(alignPlotTops);
   plotAlignmentObserver.observe(mapOptions);
