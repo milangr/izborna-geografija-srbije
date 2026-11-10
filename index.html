@@ -15,7 +15,7 @@
   <meta property="og:image:alt" content="Izborna geografija Srbije — mapa opština i gradova">
   <title>Izborna geografija Srbije</title>
   <link rel="icon" href="./favicon.ico" type="image/x-icon" sizes="any">
-  <link rel="stylesheet" href="./style.css?v=20261110-31">
+  <link rel="stylesheet" href="./style.css?v=20261110-32">
   <script src="./data.js" defer></script>
   <script src="./beograd-results.js" defer></script>
   <script src="./beograd-shapes.js" defer></script>
@@ -318,22 +318,38 @@
     <footer class="notes" aria-labelledby="notes-heading">
       <details>
         <summary id="notes-heading">Napomene i izvori</summary>
-      <ol>
-        <li>Ovo je nezavisan prikaz javno dostupnih podataka; nije zvanična stranica Republičke izborne komisije ni Republičkog zavoda za statistiku.</li>
-        <li><strong>RIK, izbori 2026:</strong> statistička regija i okrug, glasovi studentske liste (lista 3), glasovi SNS koalicione liste (lista 1), važeći i nevažeći listići, birači koji su izašli, upisani birači i biračka mjesta. Iz tih podataka izračunati su udjeli studentske i SNS liste, udio nevažećih listića i izlaznost.</li>
-        <li><strong>geoBoundaries i RIK:</strong> osnovne granice 145 jedinica preuzete su iz geoBoundaries, a podjela Beograda na 17 opština i kosovske opštinske granice iz RIK-ove vektorske mape. Beogradske granice približno su poravnate s postojećim obrisom grada.</li>
-        <li><strong>RZS, procjena 2025:</strong> stanovništvo i udio osoba od 65 godina naviše. Gustina je izračunata iz stanovništva i površine.</li>
-        <li><strong>RZS, Popis 2022:</strong> udio mladih od 15 do 29 godina.</li>
-        <li><strong>Stanje Srbije i RZS:</strong> udio stanovnika s višim ili visokim obrazovanjem preuzet je od Stanja Srbije; za beogradske opštine izračunat je iz opštinskih tabela Popisa 2022.</li>
-        <li>Udjeli studentske i SNS liste računaju se od važećih glasova. Razlika glasova je broj glasova studentske liste minus broj glasova SNS liste; pozitivan broj označava prednost studentske liste. Udio nevažećih listića računa se od svih listića pronađenih u kutijama. Izlaznost je udio upisanih birača koji su izašli na glasanje.</li>
-        <li>Kada opština nije odabrana, polja iznad mape i XY grafikona prikazuju sažetak vidljivih opština u uključenim regijama. Brojevi su zbirni; izborni udjeli računaju se iz zbirnih glasova, gustina iz zbirnog stanovništva i površine, udio 65+ ponderisan je stanovništvom, a udjeli mladih i višeg ili visokog obrazovanja su prosjeci opština.</li>
-        <li>Udjeli mladih 15–29 i stanovnika 65+ računaju se od ukupnog stanovništva u odgovarajućoj godini. Udio sa višim ili visokim obrazovanjem računa se od stanovnika od 15 godina naviše.</li>
-        <li>Glasanje je održano 25. oktobra 2026, uz ponovljeno glasanje 1. novembra. RIK-ovi rezultati za Kosovo i Metohiju prikazani su po 22 opštine, uz opštinske obrise iz RIK-ove mape prilagođene projekciji ovog prikaza. Sedam opština bez zabilježenih rezultata ostaje sivo. Za kosovske opštine ovdje nisu dostupne demografske metrike; zbir stanovništva i gustina u ukupnom redu obuhvataju samo jedinice s dostupnim podacima. Inostranstvo i „Kazneni zavodi” nemaju opštinsku geometriju; prikazani su zasebnim krugovima izvan obrisa mape i pripadaju regiji „Ostalo”. U koloni „Okrug” te dvije jedinice imaju različite nazive. Naziv „Kazneni zavodi” skraćen je od RIK-ove kategorije „Zavodi za izvršenje sankcija”. <a href="https://www.rik.parlament.gov.rs/542645/rezultati/">Pregled i mapa RIK-a</a> · <a href="https://www.rik.parlament.gov.rs/export-results/680072/2">Rezultati po biračkim mjestima (CSV)</a>.</li>
-        <li>Gustina je procjena iz godišnjeg prosjeka broja stanovnika za 2025. i površine. Za beogradske opštine korištene su službene površine za 2024, zaokružene na cijeli km²; za ostale jedinice površine su izračunate iz granica. <a href="https://publikacije.stat.gov.rs/G2026/HtmlL/G20261178.html">Procjene stanovništva i starosne strukture RZS-a, tabele 4 i 6</a> · <a href="https://publikacije.stat.gov.rs/G2025/pdf/G20252058.pdf">Površine RZS-a, tabela 20.1</a>.</li>
-        <li>Udio mladih izračunat je iz grupa 15–19, 20–24 i 25–29 prema <a href="https://publikacije.stat.gov.rs/G2024/PdfE/G202413051.pdf">Popisu 2022 (RZS, stanovništvo prema starosti i polu)</a>.</li>
-        <li>Školska sprema je iz <a href="https://www.stat.gov.rs/sr-latn/vesti/20230731-skolska-sprema-pismenost/">Popisa 2022 (RZS)</a>. Opštinske udjele izvan Beograda prenosi <a href="https://stanjesrbije.rs/pokazatelj/degree/">Stanje Srbije</a> (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>); za beogradske opštine izračunati su iz <a href="https://popis2022.stat.gov.rs/popisni-podaci-eksel-tabele/">opštinske tabele Popisa 2022</a>.</li>
-        <li>Osnovne granice 145 jedinica © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>, preko <a href="https://www.geoboundaries.org/api/current/gbOpen/SRB/ADM2/">geoBoundaries</a> (ODbL 1.0). Beogradski i kosovski opštinski oblici potiču iz <a href="https://www.rik.parlament.gov.rs/542645/rezultati/">RIK-ove mape</a>; osnovni obris Kosova je iz <a href="https://gisco-services.ec.europa.eu/distribution/v2/nuts/nuts-2024-files.html">Eurostata GISCO</a> (© EuroGeographics © UN-FAO © Turkstat).</li>
-      </ol>
+        <div class="notes-content">
+          <p class="notes-disclaimer">Nezavisan prikaz javno dostupnih podataka. Ovo nije zvanična stranica Republičke izborne komisije (RIK) ni Republičkog zavoda za statistiku (RZS).</p>
+
+          <section aria-labelledby="notes-sources-heading">
+            <h3 id="notes-sources-heading">Izvori podataka</h3>
+            <dl class="notes-sources">
+              <div><dt>Izborni rezultati · RIK</dt><dd>Glasovi lista 3 (studentska) i 1 (koalicija SNS), važeći i nevažeći listići, izašli i upisani birači, biračka mjesta, regija i okrug. <a href="https://www.rik.parlament.gov.rs/542645/rezultati/">Konačni rezultati i mapa</a> · <a href="https://www.rik.parlament.gov.rs/export-results/680072/2">Podaci po biračkim mjestima (CSV)</a></dd></div>
+              <div><dt>Stanovništvo · RZS</dt><dd>Godišnji prosjek broja stanovnika za 2025. i udio osoba 65+. <a href="https://publikacije.stat.gov.rs/G2026/HtmlL/G20261178.html">Procjene stanovništva, tabele 4 i 6</a></dd></div>
+              <div><dt>Starost i obrazovanje · Popis 2022</dt><dd>Udio mladih 15–29 prema <a href="https://publikacije.stat.gov.rs/G2024/PdfE/G202413051.pdf">RZS podacima o starosti</a>. Udio višeg ili visokog obrazovanja izvan Beograda prenosi <a href="https://stanjesrbije.rs/pokazatelj/degree/">Stanje Srbije</a> (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>), a za Beograd je izračunat iz <a href="https://popis2022.stat.gov.rs/popisni-podaci-eksel-tabele/">opštinskih tabela RZS-a</a>.</dd></div>
+              <div><dt>Površine i granice</dt><dd>Beogradske površine: <a href="https://publikacije.stat.gov.rs/G2025/pdf/G20252058.pdf">RZS godišnjak, tabela 20.1</a>. Osnovne granice 145 jedinica: <a href="https://www.geoboundaries.org/api/current/gbOpen/SRB/ADM2/">geoBoundaries SRB ADM2</a> (© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>, <a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a>). Beogradske i kosovske opštinske granice: <a href="https://www.rik.parlament.gov.rs/542645/rezultati/">RIK mapa</a>. Osnovni obris Kosova: <a href="https://gisco-services.ec.europa.eu/distribution/v2/nuts/nuts-2024-files.html">Eurostat GISCO</a> (© EuroGeographics © UN-FAO © Turkstat).</dd></div>
+            </dl>
+          </section>
+
+          <section aria-labelledby="notes-method-heading">
+            <h3 id="notes-method-heading">Kako se računaju pokazatelji</h3>
+            <ul class="notes-list">
+              <li><strong>Izbori:</strong> udjeli lista 3 i 1 računaju se od važećih glasova; razlika je broj glasova liste 3 minus broj glasova liste 1. Udio nevažećih listića računa se od listića pronađenih u kutijama, a izlaznost od upisanih birača.</li>
+              <li><strong>Demografija:</strong> gustina je godišnji prosjek stanovnika 2025. podijeljen površinom. Udio mladih sabira starosne grupe 15–19, 20–24 i 25–29; udio 65+ odnosi se na stanovništvo 2025, a udio višeg ili visokog obrazovanja na stanovnike od 15 godina naviše iz Popisa 2022.</li>
+              <li><strong>Zbirni prikazi:</strong> bez odabrane opštine polja iznad mape i XY grafikona sažimaju uključene regije. Brojevi se sabiraju; izborni udjeli, izlaznost i gustina računaju se iz zbirnih vrijednosti, udio 65+ ponderiše se stanovništvom, a udjeli mladih i obrazovanja su prosti prosjeci jedinica s dostupnim podacima.</li>
+            </ul>
+          </section>
+
+          <section aria-labelledby="notes-scope-heading">
+            <h3 id="notes-scope-heading">Obuhvat i ograničenja</h3>
+            <ul class="notes-list">
+              <li>Glasanje je održano 25. oktobra 2026, uz ponovljeno glasanje 1. novembra. Beograd je prikazan po 17 gradskih opština; gradske opštine Niša, Požarevca i Užica sabrane su u gradske cjeline.</li>
+              <li>Za Kosovo i Metohiju rezultati su prikazani za 22 opštine. Sedam opština bez rezultata ostaje sivo; demografski pokazatelji nisu dostupni. Ukupno stanovništvo i izračunata gustina obuhvataju samo jedinice s dostupnim podacima. Opštinske granice približno su prilagođene osnovnom obrisu, kao i granice beogradskih opština.</li>
+              <li>Inostranstvo i „Kazneni zavodi” nemaju opštinsku geometriju. Na mapi su zasebni krugovi, a na XY grafikonu pripadaju regiji „Ostalo”; u koloni „Okrug” imaju zasebne nazive. „Kazneni zavodi” je skraćeni naziv RIK-ove kategorije „Zavodi za izvršenje sankcija”.</li>
+              <li>Beogradske površine za 2024. zaokružene su na cijeli km². Površine ostalih jedinica izračunate su iz pojednostavljenih granica, pa je gustina procjena.</li>
+            </ul>
+          </section>
+        </div>
       </details>
     </footer>
   </main>
