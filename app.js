@@ -125,7 +125,7 @@
     listVotes: {label: 'Glasovi studentske liste', breaks: [5000, 20000]},
     snsShare: {label: 'Udio SNS liste (%)', unit: '%', breaks: [35, 50], format: percent},
     snsVotes: {label: 'Glasovi SNS liste', breaks: [5000, 20000]},
-    voteDifference: {label: 'Razlika glasova (studentska − SNS)', breaks: [-1000, 1000], format: signedWholeNumber.format},
+    voteDifference: {label: 'Razlika glasova (studentska − SNS)', breaks: [0, 5000], format: signedWholeNumber.format},
     validVotes: {label: 'Važeći glasovi', breaks: [10000, 40000]},
     invalidShare: {label: 'Nevažeći listići (%)', unit: '%', breaks: [1.2, 1.6], format: percent},
     turnout: {label: 'Izlaznost (%)', unit: '%', breaks: [50, 65], format: percent},
