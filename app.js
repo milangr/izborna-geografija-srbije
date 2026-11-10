@@ -235,6 +235,9 @@
       select.add(new Option(metricLabel(key), key));
     }
     select.value = defaultValue;
+    const updateTitle = () => { select.title = select.selectedOptions[0]?.textContent || ''; };
+    updateTitle();
+    select.addEventListener('change', updateTitle);
     select.addEventListener('wheel', event => {
       if (event.ctrlKey || !event.deltaY) return;
       event.preventDefault();
