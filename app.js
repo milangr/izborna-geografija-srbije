@@ -13,6 +13,7 @@
     entry.voteDifference = Number.isFinite(entry.listVotes) && Number.isFinite(entry.snsVotes)
       ? entry.listVotes - entry.snsVotes : null;
   }
+  const maxVoteDifference = Math.max(1, ...tableData.map(entry => Math.abs(entry.voteDifference || 0)));
   const byId = new Map(tableData.map(entry => [entry.id, entry]));
   const number = new Intl.NumberFormat('sr-Latn-RS', {maximumFractionDigits: 1});
   const wholeNumber = new Intl.NumberFormat('sr-Latn-RS', {maximumFractionDigits: 0});
@@ -419,17 +420,19 @@
   mapTexture.addEventListener('change', updateMapMetrics);
   updateMapMetrics();
 
+  const metricColumns = Object.entries(metrics).map(([key, metric]) => ({
+    key,
+    label: metricLabel(key),
+    format: key === 'voteDifference' ? signedWholeNumber.format
+      : metric.unit === '%' ? percent
+      : metric.unit === 'stan./km²' || metric.unit === 'km²' ? number.format : wholeNumber.format,
+  }));
   const columns = [
     {key: 'name', label: 'Opština ili grad'},
     {key: 'region', label: 'Statistička regija', format: code => shortRegions[code] || tableRegions[code]},
     {key: 'district', label: 'Okrug', format: value => value.replace(/ okrug$/, '')},
-    ...Object.entries(metrics).map(([key, metric]) => ({
-      key,
-      label: metricLabel(key),
-      format: key === 'voteDifference' ? signedWholeNumber.format
-        : metric.unit === '%' ? percent
-        : metric.unit === 'stan./km²' || metric.unit === 'km²' ? number.format : wholeNumber.format,
-    })),
+    metricColumns.find(column => column.key === 'voteDifference'),
+    ...metricColumns.filter(column => column.key !== 'voteDifference'),
   ];
   const table = get('municipality-table');
   const tableBody = table.tBodies[0];
@@ -509,6 +512,8 @@
     const heading = document.createElement('th');
     heading.scope = 'col';
     heading.className = 'col-' + column.key;
+    if (column.key === 'voteDifference')
+      heading.title = 'Traka lijevo od sredine: više glasova za SNS. Traka desno: više glasova za studentsku listu. Ista skala za sve redove.';
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'column-sort';
@@ -689,7 +694,20 @@
             continue;
           }
         }
-        cell.textContent = entry[key] == null ? '—' : format(entry[key]);
+        if (key === 'voteDifference' && Number.isFinite(entry[key])) {
+          cell.className = 'difference-cell';
+          const bar = document.createElement('span');
+          bar.className = 'difference-bar' + (entry[key] < 0 ? ' is-negative' : entry[key] === 0 ? ' is-zero' : '');
+          bar.style.setProperty('--bar-width', 50 * Math.abs(entry[key]) / maxVoteDifference + '%');
+          const fill = document.createElement('span');
+          fill.className = 'difference-fill';
+          fill.setAttribute('aria-hidden', 'true');
+          const value = document.createElement('span');
+          value.className = 'difference-number';
+          value.textContent = format(entry[key]);
+          bar.append(fill, value);
+          cell.append(bar);
+        } else cell.textContent = entry[key] == null ? '—' : format(entry[key]);
       }
       rows.append(row);
     }
@@ -1006,15 +1024,26 @@
       const h = svg.clientHeight;
       if (!w || !h) return;
       svg.classList.toggle('is-zoomed', chartScaleX > 1 || chartScaleY > 1);
-      const left = 61, right = w - 24, top = 23, bottom = h - 53;
+      const right = w - 24, top = 23, bottom = h - 53;
+      const xKey = xControl.value, yKey = yControl.value;
+      const xAxis = axis(xKey, w < 530 ? 4 : 7, chartLeft, chartScaleX);
+      const yAxis = axis(yKey, 6, 1 - chartTop - 1 / chartScaleY, chartScaleY);
+      const yTicks = [];
+      for (let value = Math.ceil(yAxis.min / yAxis.step) * yAxis.step; value <= yAxis.max; value += yAxis.step)
+        yTicks.push({value, label: yAxis.format(value)});
+      svg.setAttribute('viewBox', [0, 0, w, h].join(' '));
+      const measure = svgNode('text', {visibility: 'hidden'}, axes);
+      const widestTick = Math.max(0, ...yTicks.map(tick => {
+        measure.textContent = tick.label;
+        return measure.getComputedTextLength();
+      }));
+      measure.remove();
+      const left = Math.max(68, Math.ceil(widestTick) + 32);
       plot = {left, right, top, bottom};
       clipRect.setAttribute('x', left);
       clipRect.setAttribute('y', top);
       clipRect.setAttribute('width', right - left);
       clipRect.setAttribute('height', bottom - top);
-      const xKey = xControl.value, yKey = yControl.value;
-      const xAxis = axis(xKey, w < 530 ? 4 : 7, chartLeft, chartScaleX);
-      const yAxis = axis(yKey, 6, 1 - chartTop - 1 / chartScaleY, chartScaleY);
       for (const [bounds, values] of [[zoom.x, xAxis], [zoom.y, yAxis]]) {
         bounds.min.title = values.format(values.min);
         bounds.max.title = values.format(values.max);
@@ -1023,7 +1052,6 @@
       }
       const x = value => left + (value - xAxis.min) / (xAxis.max - xAxis.min) * (right - left);
       const y = value => bottom - (value - yAxis.min) / (yAxis.max - yAxis.min) * (bottom - top);
-      svg.setAttribute('viewBox', [0, 0, w, h].join(' '));
       axes.replaceChildren();
       const line = (x1, y1, x2, y2, className) =>
         svgNode('line', {x1, y1, x2, y2, class: className}, axes);
@@ -1034,10 +1062,10 @@
         line(position, top, position, bottom, 'scatter-grid');
         text(position, bottom + 18, xAxis.format(value), {'text-anchor': 'middle'});
       }
-      for (let value = Math.ceil(yAxis.min / yAxis.step) * yAxis.step; value <= yAxis.max; value += yAxis.step) {
-        const position = y(value);
+      for (const tick of yTicks) {
+        const position = y(tick.value);
         line(left, position, right, position, 'scatter-grid');
-        text(left - 8, position + 4, yAxis.format(value), {'text-anchor': 'end'});
+        text(left - 8, position + 4, tick.label, {'text-anchor': 'end'});
       }
       line(left, bottom, right, bottom, 'scatter-axis');
       line(left, bottom, left, top, 'scatter-axis');

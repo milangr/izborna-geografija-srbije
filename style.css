@@ -231,6 +231,13 @@ select { display: block; width: 100%; margin-top: .75rem; padding: .4rem .55rem;
 #municipality-table .row-name, #municipality-table .region-cell, #municipality-table .district-cell { text-align: left; }
 #municipality-table thead th { text-align: center; }
 #municipality-table th.col-snsShare { min-width: 7rem; }
+#municipality-table th.col-voteDifference { min-width: 9rem; }
+#municipality-table .difference-bar { position: relative; display: block; min-width: 8rem; line-height: 1.35rem; isolation: isolate; }
+#municipality-table .difference-bar::before { position: absolute; top: 1px; bottom: 1px; left: 50%; width: 1px; background: #8ea3b7; content: ''; }
+#municipality-table .difference-fill { position: absolute; top: 1px; bottom: 1px; left: 50%; width: max(2px, var(--bar-width)); border-radius: 2px; background: #a8cdea; }
+#municipality-table .difference-bar.is-negative .difference-fill { right: 50%; left: auto; background: #efc1aa; }
+#municipality-table .difference-bar.is-zero .difference-fill { display: none; }
+#municipality-table .difference-number { position: relative; }
 #municipality-table .row-number { text-align: center; width: 3.2rem; }
 #municipality-table tbody th, #municipality-table tbody td { white-space: nowrap; }
 #municipality-table tbody tr:nth-child(even) { background: #f7f9fc; }
