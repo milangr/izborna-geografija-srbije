@@ -225,7 +225,7 @@
     const format = key === 'voteDifference' ? signedWholeNumber.format
       : metrics[key].unit === '%' ? percent : compact.format;
     const [low, high] = metrics[key].breaks.map(format);
-    return ['< ' + low, low + '–< ' + high, '≥ ' + high];
+    return ['< ' + low, '≥ ' + low + ' i < ' + high, '≥ ' + high];
   }
   function metricSelect(id, defaultValue, includeRegions = false) {
     const select = get(id);
