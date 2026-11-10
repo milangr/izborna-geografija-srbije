@@ -15,7 +15,7 @@
   <meta property="og:image:alt" content="Izborna geografija Srbije — mapa opština i gradova">
   <title>Izborna geografija Srbije</title>
   <link rel="icon" href="./favicon.ico" type="image/x-icon" sizes="any">
-  <link rel="stylesheet" href="./style.css?v=20261110-10">
+  <link rel="stylesheet" href="./style.css?v=20261110-14">
   <script src="./data.js" defer></script>
   <script src="./beograd-results.js" defer></script>
   <script src="./beograd-shapes.js" defer></script>
@@ -23,7 +23,7 @@
   <script src="./kosovo-shapes.js" defer></script>
   <script src="./region-outlines.js" defer></script>
   <script src="./special-results.js?v=20261110-2" defer></script>
-  <script src="./app.js?v=20261110-13" defer></script>
+  <script src="./app.js?v=20261110-16" defer></script>
 </head>
 <body>
   <main class="shell">
@@ -236,6 +236,7 @@
         <legend>Prikaz regija i prosjek <button id="select-all-regions" class="region-select-all" type="button" disabled>Odaberi sve</button></legend>
         <div class="region-picker-options"></div>
       </fieldset>
+      <label class="map-table-sync"><input id="sync-visual-filters" type="checkbox"> Tabela prati regije i odabranu opštinu</label>
       <p class="map-missing-note"><span class="empty-key" aria-hidden="true"></span> Bez prikazanih vrijednosti</p>
       </section>
       <section class="panel scatter-panel" aria-labelledby="scatter-heading">

@@ -282,7 +282,10 @@
     const label = document.createElement('span');
     label.textContent = entry.name;
     button.append(circle, label);
-    button.addEventListener('click', () => chooseSpecial(entry));
+    button.addEventListener('click', () => {
+      if (syncVisualFilters.checked) clearTableFilters(true);
+      chooseSpecial(entry);
+    });
     button.addEventListener('pointerenter', () => {
       if (isVisible(entry.id)) showMapValues(entry);
     });
@@ -420,6 +423,7 @@
   const tableBody = table.tBodies[0];
   const tableFoot = table.tFoot;
   const syncFilters = get('sync-table-filters');
+  const syncVisualFilters = get('sync-visual-filters');
   let sortKey = 'name';
   let ascending = true;
   const searchKey = text => text.toLocaleLowerCase('sr-Latn-RS').normalize('NFD')
@@ -458,6 +462,7 @@
   const filterButtons = new Map();
   const selectedRows = new Set();
   let visibleRows = [];
+  let tableFilteredRows = [];
   selectAll.addEventListener('change', () => {
     for (const entry of visibleRows.filter(entry => !entry.special)) {
       if (selectAll.checked) selectedRows.add(entry.id);
@@ -578,11 +583,16 @@
       return [key, Number.isNaN(min.valueAsNumber) ? -Infinity : min.valueAsNumber,
         Number.isNaN(max.valueAsNumber) ? Infinity : max.valueAsNumber];
     });
-    const visible = tableData.filter(entry => nameKeys.get(entry.id).includes(query) &&
+    const filtered = tableData.filter(entry => nameKeys.get(entry.id).includes(query) &&
       (!region || entry.region === region) &&
       (!district || entry.district === district) &&
       ranges.every(([key, min, max]) => (min === -Infinity && max === Infinity) ||
         (entry[key] != null && entry[key] >= min && entry[key] <= max)));
+    const activeSelection = selectedSpecial?.id || selected?.id;
+    const visible = syncVisualFilters.checked
+      ? filtered.filter(entry => selectedRegions.has(entry.region) &&
+        (!activeSelection || entry.id === activeSelection))
+      : filtered;
     visible.sort((a, b) => {
       const nameOrder = byName.compare(a.name, b.name);
       if (!['name', 'region', 'district'].includes(sortKey)) {
@@ -682,6 +692,7 @@
     tableBody.replaceChildren(rows);
     renderTotal(visible);
     visibleRows = visible;
+    tableFilteredRows = filtered;
     updateTableStatus();
   }
 
@@ -733,23 +744,33 @@
 
   function updateTableStatus() {
     const selectable = visibleRows.filter(entry => !entry.special);
-    const visibleSpecial = visibleRows.filter(entry => entry.region === 'OTHER');
+    const filterSelectable = tableFilteredRows.filter(entry => !entry.special);
+    const visibleSpecial = tableFilteredRows.filter(entry => entry.region === 'OTHER');
     const visibleSelected = selectable.filter(entry => selectedRows.has(entry.id)).length;
     selectAll.checked = selectable.length > 0 && visibleSelected === selectable.length;
     selectAll.indeterminate = visibleSelected > 0 && visibleSelected < selectable.length;
     selectAll.disabled = selectable.length === 0;
     applyVisualFilter([...visibleSpecial,
-      ...(selectedRows.size ? selectable.filter(entry => selectedRows.has(entry.id)) : selectable)]);
+      ...(selectedRows.size ? filterSelectable.filter(entry => selectedRows.has(entry.id)) : filterSelectable)]);
   }
 
-  syncFilters.addEventListener('change', updateTableStatus);
-  get('clear-table-filters').addEventListener('click', () => {
+  syncFilters.addEventListener('change', () => {
+    if (syncFilters.checked) syncVisualFilters.checked = false;
+    renderTable();
+  });
+  syncVisualFilters.addEventListener('change', () => {
+    if (syncVisualFilters.checked) syncFilters.checked = false;
+    renderTable();
+  });
+  function clearTableFilters(clearSelection = false, rerender = true) {
     search.value = '';
     regionFilter.value = '';
     districtFilter.value = '';
     for (const inputs of rangeFilters.values()) for (const input of inputs) input.value = '';
-    renderTable();
-  });
+    if (clearSelection) selectedRows.clear();
+    if (rerender) renderTable();
+  }
+  get('clear-table-filters').addEventListener('click', () => clearTableFilters());
   function applyVisualFilter(visible) {
     visualFilter = syncFilters.checked ? new Set(visible.map(entry => entry.id)) : null;
     refreshMetricAverages();
@@ -760,7 +781,8 @@
       get(entry.id).classList.toggle('is-filtered', filtered);
       get(entry.id + '-texture').classList.toggle('is-filtered', filtered);
     }
-    for (const entry of mappedSpecialResults) specialMapButtons.get(entry.id).disabled = !isVisible(entry.id);
+    for (const entry of mappedSpecialResults) specialMapButtons.get(entry.id).disabled =
+      !isVisible(entry.id);
     scatter.applyFilter();
     hideTooltip();
     scatter.refreshAverages();
@@ -791,7 +813,7 @@
     hideTooltip();
   }
 
-  function choose(unit) {
+  function choose(unit, updateSyncedTable = true) {
     selectedSpecial = null;
     for (const button of specialMapButtons.values()) button.setAttribute('aria-pressed', 'false');
     selected = unit && isVisible(unit.id) ? unit : null;
@@ -800,18 +822,20 @@
     selection.setAttribute('visibility', entry ? 'visible' : 'hidden');
     scatter.select(entry);
     updateMapReadout(entry);
+    if (updateSyncedTable && syncVisualFilters.checked) renderTable();
     if (!entry) return;
     selection.setAttribute('d', selected.getAttribute('d'));
   }
 
   function chooseSpecial(entry) {
     if (!isVisible(entry.id)) return;
-    choose(null);
+    choose(null, false);
     selectedSpecial = entry;
     specialMapButtons.get(entry.id).setAttribute('aria-pressed', 'true');
     for (const row of tableBody.rows) row.classList.toggle('is-current', row.dataset.unitId === entry.id);
     scatter.select(entry);
     showMapValues(entry);
+    if (syncVisualFilters.checked) renderTable();
   }
 
   function zoom(factor) {
@@ -841,6 +865,7 @@
   map.addEventListener('click', event => {
     if (drag?.moved) return;
     const unit = event.target.closest('[data-unit]');
+    if (syncVisualFilters.checked) clearTableFilters(true);
     choose(unit);
     if (!unit) hideTooltip();
   });
@@ -1262,6 +1287,7 @@
         return;
       }
       const entry = entryAt(event);
+      if (syncVisualFilters.checked) clearTableFilters(true);
       if (entry?.region === 'OTHER') chooseSpecial(entry);
       else choose(entry ? get(entry.id) : null);
       if (!entry) hideScatterTooltip();
@@ -1296,6 +1322,7 @@
   const regionPicker = document.querySelector('.region-picker-options');
   const selectAllRegions = get('select-all-regions');
   function refreshRegions() {
+    if (syncVisualFilters.checked) clearTableFilters(true, false);
     selectAllRegions.disabled = selectedRegions.size === Object.keys(regions).length;
     for (const item of regionLegend.querySelectorAll('[data-region]')) {
       item.classList.toggle('is-inactive', !selectedRegions.has(item.dataset.region));
@@ -1303,7 +1330,8 @@
     for (const outline of outlineGroup.children) {
       outline.classList.toggle('is-filtered', !selectedRegions.has(outline.dataset.region));
     }
-    applyVisualFilter(visibleRows);
+    if (syncVisualFilters.checked) renderTable();
+    else applyVisualFilter(visibleRows);
     showMapValues(selectedSpecial || byId.get(selected?.id));
   }
   for (const [code, name] of Object.entries(regions)) {
