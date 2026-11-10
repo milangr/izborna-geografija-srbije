@@ -899,7 +899,7 @@
     const legend = document.querySelector('.scatter-regions');
     const xControl = metricSelect('scatter-x', 'voteDifference');
     const yControl = metricSelect('scatter-y', 'validVotes');
-    const sizeControl = metricSelect('scatter-size', 'votersAttended');
+    const sizeControl = metricSelect('scatter-size', 'registeredVoters');
     const colorControl = metricSelect('scatter-color', 'region', true);
     const svgNode = (tag, attributes, parent, label) => {
       const element = document.createElementNS('http://www.w3.org/2000/svg', tag);
