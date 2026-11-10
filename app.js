@@ -249,7 +249,7 @@
     }, {passive: false});
     return select;
   }
-  const mapColor = metricSelect('map-color', 'votes', true);
+  const mapColor = metricSelect('map-color', 'voteDifference', true);
   const mapTexture = metricSelect('map-texture', 'density');
   const mapLegend = document.querySelector('.map-panel .legend');
   const colorCaption = mapLegend.querySelector('caption');
@@ -897,8 +897,8 @@
     const tip = stage.querySelector('.map-tooltip');
     const readout = document.querySelector('.scatter-panel .metric-controls');
     const legend = document.querySelector('.scatter-regions');
-    const xControl = metricSelect('scatter-x', 'votes');
-    const yControl = metricSelect('scatter-y', 'turnout');
+    const xControl = metricSelect('scatter-x', 'voteDifference');
+    const yControl = metricSelect('scatter-y', 'validVotes');
     const sizeControl = metricSelect('scatter-size', 'votersAttended');
     const colorControl = metricSelect('scatter-color', 'region', true);
     const svgNode = (tag, attributes, parent, label) => {
