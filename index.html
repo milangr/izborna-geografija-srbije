@@ -15,7 +15,7 @@
   <meta property="og:image:alt" content="Izborna geografija Srbije — mapa opština i gradova">
   <title>Izborna geografija Srbije</title>
   <link rel="icon" href="./favicon.ico" type="image/x-icon" sizes="any">
-  <link rel="stylesheet" href="./style.css?v=20261110-6">
+  <link rel="stylesheet" href="./style.css?v=20261110-10">
   <script src="./data.js" defer></script>
   <script src="./beograd-results.js" defer></script>
   <script src="./beograd-shapes.js" defer></script>
@@ -23,7 +23,7 @@
   <script src="./kosovo-shapes.js" defer></script>
   <script src="./region-outlines.js" defer></script>
   <script src="./special-results.js?v=20261110-2" defer></script>
-  <script src="./app.js?v=20261110-10" defer></script>
+  <script src="./app.js?v=20261110-13" defer></script>
 </head>
 <body>
   <main class="shell">
@@ -244,7 +244,7 @@
           <h2 id="scatter-heading">Odnos pokazatelja po opštinama</h2>
           <span class="method-help">
             <button class="method-help-button" type="button" aria-label="Metodologija XY grafikona" aria-describedby="scatter-method-tip">i</button>
-            <span class="method-tooltip" id="scatter-method-tip" role="tooltip"><span class="tooltip-sentence">Svaki krug je opština ili zbirna jedinica: X i Y određuju položaj, a ostali izbori veličinu i boju.</span><span class="tooltip-sentence">Vodoravna linija prikazuje zbirni pokazatelj za izborne udjele, razliku glasova i gustinu, ponderisani udio 65+, a prost prosjek za ostale mjere.</span><span class="tooltip-sentence">Filteri tabele važe kada je uključeno njihovo prenošenje na grafikon.</span><span class="tooltip-sentence">Regija Ostalo obuhvata Inostranstvo i Kaznene zavode.</span></span>
+            <span class="method-tooltip" id="scatter-method-tip" role="tooltip"><span class="tooltip-sentence">Svaki krug je opština ili zbirna jedinica: X i Y određuju položaj, a ostali izbori veličinu i boju.</span><span class="tooltip-sentence">Početak i kraj vidljivog raspona podešavaju se zasebno za X i Y osu. Povuci grafikon da pomjeriš izabrani dio; puni raspon prikazuje sve tačke.</span><span class="tooltip-sentence">Vodoravna linija prikazuje zbirni pokazatelj za izborne udjele, razliku glasova i gustinu, ponderisani udio 65+, a prost prosjek za ostale mjere.</span><span class="tooltip-sentence">Filteri tabele važe kada je uključeno njihovo prenošenje na grafikon.</span><span class="tooltip-sentence">Regija Ostalo obuhvata Inostranstvo i Kaznene zavode.</span></span>
           </span>
         </div>
         <span class="readout-scope" id="scatter-readout-scope">Sve regije · zbir</span>
@@ -265,8 +265,26 @@
         <div class="map-tooltip" aria-hidden="true" hidden></div>
       </div>
       <div class="scatter-footer">
-        <div class="scatter-legend" aria-label="Veličina krugova">
+        <div class="scatter-size-panel">
           <span id="scatter-size-label"></span>
+          <div class="scatter-legend" aria-label="Veličina krugova"></div>
+        </div>
+        <div class="scatter-range-panel" aria-label="Vidljivi raspon grafikona">
+          <div class="scatter-zoom-row">
+            <span>X osa</span>
+            <div class="scatter-zoom-track" role="group" aria-label="Vidljivi raspon X ose">
+              <input id="scatter-x-min" aria-label="Početak X ose" type="range" min="0" max="100" step="0.5" value="0">
+              <input id="scatter-x-max" aria-label="Kraj X ose" type="range" min="0" max="100" step="0.5" value="100">
+            </div>
+          </div>
+          <div class="scatter-zoom-row">
+            <span>Y osa</span>
+            <div class="scatter-zoom-track" role="group" aria-label="Vidljivi raspon Y ose">
+              <input id="scatter-y-min" aria-label="Početak Y ose" type="range" min="0" max="100" step="0.5" value="0">
+              <input id="scatter-y-max" aria-label="Kraj Y ose" type="range" min="0" max="100" step="0.5" value="100">
+            </div>
+          </div>
+          <span class="scatter-zoom-hint">Pomjeri krajeve raspona ili povuci grafikon</span>
         </div>
       </div>
       </section>

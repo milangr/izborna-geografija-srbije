@@ -900,6 +900,10 @@
     const yControl = metricSelect('scatter-y', 'validVotes');
     const sizeControl = metricSelect('scatter-size', 'registeredVoters');
     const colorControl = metricSelect('scatter-color', 'region', true);
+    const zoom = {
+      x: {min: get('scatter-x-min'), max: get('scatter-x-max')},
+      y: {min: get('scatter-y-min'), max: get('scatter-y-max')},
+    };
     const svgNode = (tag, attributes, parent, label) => {
       const element = document.createElementNS('http://www.w3.org/2000/svg', tag);
       for (const [key, value] of Object.entries(attributes)) element.setAttribute(key, value);
@@ -919,7 +923,8 @@
     let highlighted = null;
     let hoveredPoint = null;
     let currentEntry;
-    let chartScale = 1;
+    let chartScaleX = 1;
+    let chartScaleY = 1;
     let chartLeft = 0;
     let chartTop = 0;
     let plot;
@@ -936,21 +941,25 @@
       return [1, 2, 5, 10].find(n => n * base >= roughStep) * base;
     }
 
-    function axis(key, tickCount, start) {
-      const values = plotData.map(entry => entry[key]).filter(Number.isFinite);
+    function axis(key, tickCount, start, scale) {
+      const values = plotData.filter(entry => isVisible(entry.id) && hasPlotValue(entry))
+        .map(entry => entry[key]).sort((a, b) => a - b);
       const isPercent = metrics[key].unit === '%';
-      const lower = values.length ? Math.min(...values) : 0;
-      const upper = values.length ? Math.max(...values) : 1;
+      let lower = values.length ? values[0] : 0;
+      let upper = values.length ? values.at(-1) : 1;
       const roughStep = (upper - lower) / tickCount || 1;
       const step = key === 'votes' || key === 'snsShare' || key === 'turnout'
         ? (tickCount < 5 ? 20 : 10)
         : niceStep(roughStep);
-      const min = Math.floor(lower / step) * step;
-      const max = Math.max(min + step, Math.ceil(upper / step) * step);
+      const padding = (upper - lower || step) * .04;
+      const min = key === 'voteDifference'
+        ? Math.floor((lower - padding) / step) * step
+        : Math.max(0, Math.floor((lower - padding) / step) * step);
+      const max = Math.max(min + step, Math.ceil((upper + padding) / step) * step);
       const span = max - min;
       const visibleMin = min + start * span;
-      const visibleSpan = span / chartScale;
-      const tickStep = chartScale === 1 ? step : niceStep(visibleSpan / tickCount);
+      const visibleSpan = span / scale;
+      const tickStep = scale === 1 ? step : niceStep(visibleSpan / tickCount);
       return {min: visibleMin, max: visibleMin + visibleSpan, step: tickStep,
         format: isPercent ? percent : compact.format};
     }
@@ -959,7 +968,7 @@
       const w = svg.clientWidth;
       const h = svg.clientHeight;
       if (!w || !h) return;
-      svg.classList.toggle('is-zoomed', chartScale > 1);
+      svg.classList.toggle('is-zoomed', chartScaleX > 1 || chartScaleY > 1);
       const left = 61, right = w - 24, top = 23, bottom = h - 53;
       plot = {left, right, top, bottom};
       clipRect.setAttribute('x', left);
@@ -967,8 +976,14 @@
       clipRect.setAttribute('width', right - left);
       clipRect.setAttribute('height', bottom - top);
       const xKey = xControl.value, yKey = yControl.value;
-      const xAxis = axis(xKey, w < 530 ? 4 : 7, chartLeft);
-      const yAxis = axis(yKey, 6, 1 - chartTop - 1 / chartScale);
+      const xAxis = axis(xKey, w < 530 ? 4 : 7, chartLeft, chartScaleX);
+      const yAxis = axis(yKey, 6, 1 - chartTop - 1 / chartScaleY, chartScaleY);
+      for (const [bounds, values] of [[zoom.x, xAxis], [zoom.y, yAxis]]) {
+        bounds.min.title = values.format(values.min);
+        bounds.max.title = values.format(values.max);
+        bounds.min.setAttribute('aria-valuetext', values.format(values.min));
+        bounds.max.setAttribute('aria-valuetext', values.format(values.max));
+      }
       const x = value => left + (value - xAxis.min) / (xAxis.max - xAxis.min) * (right - left);
       const y = value => bottom - (value - yAxis.min) / (yAxis.max - yAxis.min) * (bottom - top);
       svg.setAttribute('viewBox', [0, 0, w, h].join(' '));
@@ -1009,9 +1024,11 @@
     }
 
     function resetView() {
-      chartScale = 1;
+      chartScaleX = 1;
+      chartScaleY = 1;
       chartLeft = 0;
       chartTop = 0;
+      syncZoomControls();
       chartDrag = null;
       svg.classList.remove('is-dragging');
       hideScatterTooltip();
@@ -1026,34 +1043,74 @@
     }
 
     function moveChart(left, top) {
-      const limit = 1 - 1 / chartScale;
-      chartLeft = Math.max(0, Math.min(limit, left));
-      chartTop = Math.max(0, Math.min(limit, top));
+      chartLeft = Math.max(0, Math.min(1 - 1 / chartScaleX, left));
+      chartTop = Math.max(0, Math.min(1 - 1 / chartScaleY, top));
+      syncZoomControls();
       hideScatterTooltip();
       draw();
+    }
+
+    function syncZoomControls() {
+      for (const [bounds, min, max] of [
+        [zoom.x, chartLeft * 100, (chartLeft + 1 / chartScaleX) * 100],
+        [zoom.y, (1 - chartTop - 1 / chartScaleY) * 100, (1 - chartTop) * 100],
+      ]) {
+        bounds.min.value = Math.round(min * 2) / 2;
+        bounds.max.value = Math.round(max * 2) / 2;
+        bounds.min.parentElement.style.setProperty('--range-start', min + '%');
+        bounds.min.parentElement.style.setProperty('--range-end', max + '%');
+      }
+    }
+
+    for (const [dimension, bounds] of Object.entries(zoom)) {
+      for (const handle of [bounds.min, bounds.max]) {
+        handle.addEventListener('input', () => {
+          let min = Number(bounds.min.value);
+          let max = Number(bounds.max.value);
+          if (max - min < 12.5) {
+            if (handle === bounds.min) min = max - 12.5;
+            else max = min + 12.5;
+            handle.value = handle === bounds.min ? min : max;
+          }
+          const scale = 100 / (max - min);
+          if (dimension === 'x') {
+            chartScaleX = scale;
+            chartLeft = min / 100;
+          } else {
+            chartScaleY = scale;
+            chartTop = (100 - max) / 100;
+          }
+          syncZoomControls();
+          hideScatterTooltip();
+          draw();
+        });
+      }
     }
 
     svg.addEventListener('wheel', event => {
       if (event.ctrlKey) return;
       const point = plotPoint(event);
-      const next = wheelScale(event, chartScale, 8);
-      if (!point || next === chartScale) return;
+      const nextX = wheelScale(event, chartScaleX, 8);
+      const nextY = wheelScale(event, chartScaleY, 8);
+      if (!point || (nextX === chartScaleX && nextY === chartScaleY)) return;
       event.preventDefault();
-      const difference = 1 / chartScale - 1 / next;
-      chartScale = next;
-      moveChart(chartLeft + (point.x - plot.left) / (plot.right - plot.left) * difference,
-        chartTop + (point.y - plot.top) / (plot.bottom - plot.top) * difference);
+      const differenceX = 1 / chartScaleX - 1 / nextX;
+      const differenceY = 1 / chartScaleY - 1 / nextY;
+      chartScaleX = nextX;
+      chartScaleY = nextY;
+      moveChart(chartLeft + (point.x - plot.left) / (plot.right - plot.left) * differenceX,
+        chartTop + (point.y - plot.top) / (plot.bottom - plot.top) * differenceY);
     }, {passive: false});
 
     svg.addEventListener('pointerdown', event => {
       chartDrag = null;
-      if (chartScale === 1 || event.button !== 0 || event.pointerType === 'touch' || !plotPoint(event)) return;
+      if ((chartScaleX === 1 && chartScaleY === 1) || event.button !== 0 || event.pointerType === 'touch' || !plotPoint(event)) return;
       chartDrag = {id: event.pointerId, x: event.clientX, y: event.clientY,
         left: chartLeft, top: chartTop, moved: false};
     });
 
     function dragChart(event) {
-      if (!chartDrag || event.pointerId !== chartDrag.id || !(event.buttons & 1) || chartScale === 1) return false;
+      if (!chartDrag || event.pointerId !== chartDrag.id || !(event.buttons & 1) || (chartScaleX === 1 && chartScaleY === 1)) return false;
       const dx = event.clientX - chartDrag.x;
       const dy = event.clientY - chartDrag.y;
       if (!chartDrag.moved && Math.hypot(dx, dy) < 5) return false;
@@ -1062,8 +1119,8 @@
         svg.setPointerCapture(event.pointerId);
         svg.classList.add('is-dragging');
       }
-      moveChart(chartDrag.left - dx / ((plot.right - plot.left) * chartScale),
-        chartDrag.top - dy / ((plot.bottom - plot.top) * chartScale));
+      moveChart(chartDrag.left - dx / ((plot.right - plot.left) * chartScaleX),
+        chartDrag.top - dy / ((plot.bottom - plot.top) * chartScaleY));
       return true;
     }
 
@@ -1141,7 +1198,7 @@
       const base = 10 ** Math.floor(Math.log10(maxSize));
       const high = [5, 2, 1].find(n => n * base <= maxSize) * base;
       const samples = high >= 10000 ? [high / 100, high / 10, high] : [high / 10, high / 2, high];
-      sizeLegend.replaceChildren(sizeLabel);
+      sizeLegend.replaceChildren();
       for (const value of samples) {
         const item = document.createElement('span');
         item.className = 'scatter-size';
@@ -1157,7 +1214,6 @@
         '. Horizontalna referentna linija: ' + benchmarkLabel(yKey) + ' — ' + metricValue({[yKey]: metricAverages[yKey]}, yKey) +
         '. Izaberi krug za tačne vrijednosti opštine, Inostranstva ili Kaznenih zavoda.';
       tip.hidden = true;
-      draw();
       select(currentEntry);
       applyFilter();
     }
@@ -1225,9 +1281,11 @@
         (colorControl.value === 'region' || Number.isFinite(entry[colorControl.value]));
     }
     function applyFilter() {
+      resetView();
       for (const [id, dot] of points) {
         dot.classList.toggle('is-filtered', !isVisible(id) || !hasPlotValue(byId.get(id)));
       }
+      draw();
       hideScatterTooltip();
     }
     return {select, hover, applyFilter, refreshAverages: updateMetrics,
