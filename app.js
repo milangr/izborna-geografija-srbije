@@ -466,7 +466,6 @@
     renderTable();
   });
   for (const [code, name] of Object.entries(regions)) regionFilter.add(new Option(name, code));
-  for (const code of ['33000', '55001']) regionFilter.add(new Option(tableRegions[code], code));
   const districtRegions = new Map();
   for (const entry of tableData) {
     if (entry.district) districtRegions.set(entry.district, entry.region);
