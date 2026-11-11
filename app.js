@@ -665,6 +665,7 @@
   let activeColumnHelp = null;
   let helpHideTimer = null;
   const addColumnHelp = (trigger, key) => {
+    const hoverTarget = trigger.querySelector('.column-title-text') || trigger;
     const [description, sources] = columnHelp[key];
     const popup = document.createElement('div');
     popup.id = 'column-help-' + key;
@@ -694,7 +695,7 @@
       if (columnDrag) return;
       clearTimeout(helpHideTimer);
       if (activeColumnHelp && activeColumnHelp !== popup) activeColumnHelp.hidePopover();
-      const rect = trigger.getBoundingClientRect();
+      const rect = hoverTarget.getBoundingClientRect();
       popup.style.left = Math.max(8, Math.min(rect.left, document.documentElement.clientWidth - 328)) + 'px';
       popup.style.top = Math.max(8, Math.min(rect.bottom + 5, window.innerHeight - 180)) + 'px';
       if (!popup.matches(':popover-open')) popup.showPopover();
@@ -709,8 +710,8 @@
         }
       }, 160);
     };
-    trigger.addEventListener('mouseenter', show);
-    trigger.addEventListener('mouseleave', scheduleHide);
+    hoverTarget.addEventListener('mouseenter', show);
+    hoverTarget.addEventListener('mouseleave', scheduleHide);
     trigger.addEventListener('focus', show);
     trigger.addEventListener('blur', scheduleHide);
     popup.addEventListener('mouseenter', () => clearTimeout(helpHideTimer));
@@ -831,14 +832,17 @@
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'column-sort';
-    button.textContent = column.label;
+    const label = document.createElement('span');
+    label.className = 'column-title-text';
+    label.textContent = column.label;
+    button.append(label);
     const headingLines = column.key === 'averageNetWage2025'
       ? ['Prosječna', 'neto zarada', '2025']
       : column.key === 'voteDifference' ? ['Razlika', 'glasova', '(lista 3 − SNS)'] : null;
     if (headingLines) {
       button.classList.add('is-three-line');
       button.setAttribute('aria-label', column.label);
-      button.replaceChildren(...headingLines.flatMap((line, index) =>
+      label.replaceChildren(...headingLines.flatMap((line, index) =>
         index ? [document.createElement('br'), document.createTextNode(line)] : [document.createTextNode(line)]));
     }
     button.addEventListener('click', () => {
