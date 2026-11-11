@@ -451,7 +451,8 @@
     mapLegend.classList.toggle('is-matrix', !colorMatrix.hidden);
     mapLegend.classList.toggle('is-development', color === 'developmentGroup2014');
     if (color !== 'region') colorCaption.textContent = 'Boja · ' + metricLabel(color);
-    textureCaption.textContent = metricLabel(texture);
+    textureCaption.textContent = texture === 'averageNetWage2025'
+      ? 'Prosj. neto zarada\n(2025) (RSD)' : metricLabel(texture);
     const headings = colorMatrix.querySelectorAll('thead th');
     headings[0].textContent = '';
     const colorRanges = !colorMatrix.hidden ? mapRangeLabels(color) : [];

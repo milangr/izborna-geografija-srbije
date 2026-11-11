@@ -149,7 +149,7 @@ button:disabled { color: #7a8793; cursor: default; background: #f3f5f8; }
 .row-head { text-align: right; }
 .row-head .range-line { display: block; line-height: 1.05; }
 .legend p { margin: .25rem 0 0; color: var(--secondary); }
-.legend .map-legend-label { grid-column: 1; grid-row: 1; margin: 0; font-weight: 700; line-height: 1.35; color: var(--ink); overflow-wrap: anywhere; }
+.legend .map-legend-label { grid-column: 1; grid-row: 1; margin: 0; font-weight: 700; line-height: 1.35; color: var(--ink); overflow-wrap: anywhere; white-space: pre-line; }
 .legend.is-matrix, .legend.is-development { grid-template-columns: 2.2rem minmax(0, 1fr); }
 .legend.is-matrix .map-legend-label, .legend.is-development .map-legend-label { justify-self: center; writing-mode: vertical-rl; transform: rotate(180deg); }
 .map-region-legend { grid-column: 2; grid-row: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .3rem .5rem; margin: 0; padding: 0; list-style: none; }
