@@ -133,11 +133,11 @@
       format: value => developmentLabels[value]},
     averageNetWage2025: {label: 'Prosj. neto zarada (2025)', unit: 'RSD',
       breaks: [90000, 110000]},
-    votes: {label: 'Udio liste 3 (%)', unit: '%', breaks: [35, 50], format: percent},
-    listVotes: {label: 'Glasovi liste 3', breaks: [5000, 20000]},
+    votes: {label: 'Udio liste Lista3 (%)', unit: '%', breaks: [35, 50], format: percent},
+    listVotes: {label: 'Glasovi liste Lista3', breaks: [5000, 20000]},
     snsShare: {label: 'Udio SNS liste (%)', unit: '%', breaks: [35, 50], format: percent},
     snsVotes: {label: 'Glasovi SNS liste', breaks: [5000, 20000]},
-    voteDifference: {label: 'Razlika glasova (lista 3 − SNS)', breaks: [0, 5000], format: signedWholeNumber.format},
+    voteDifference: {label: 'Razlika glasova (Lista3 − SNS)', breaks: [0, 5000], format: signedWholeNumber.format},
     validVotes: {label: 'Važeći glasovi', breaks: [10000, 40000]},
     invalidShare: {label: 'Nevažeći listići (%)', unit: '%', breaks: [1.2, 1.6], format: percent},
     turnout: {label: 'Izlaznost (%)', unit: '%', breaks: [50, 65], format: percent},
@@ -618,8 +618,8 @@
     district: ['Upravni okrug opštine ili grada. Za Inostranstvo i Kaznene zavode prikazan je naziv posebne kategorije.', ['rik']],
     developmentGroup2014: ['Razvijenost JLS prema uredbi iz 2014.\nNapomena: Ovo je posljednja dostupna zvanična klasifikacija.\n\nI — iznad prosjeka\nII — 80–100% prosjeka\nIII — 60–80% prosjeka\nIV — ispod 60% prosjeka\nV — devastirano, ispod 50% prosjeka; prikazano kao peta kategorija, a po uredbi je podgrupa IV.\n\nSvih 17 beogradskih opština ima grupu Grada Beograda.', ['development']],
     voteDifference: ['Glasovi studentske liste minus glasovi SNS liste. Pozitivna traka ide udesno, negativna ulijevo.', ['rik']],
-    votes: ['Udio glasova studentske liste (lista 3) među važećim glasovima. Traka prikazuje udio na skali od 0 do 100%.', ['rik']],
-    listVotes: ['Broj glasova studentske liste (lista 3).', ['rik']],
+    votes: ['Udio glasova studentske liste Lista3 među važećim glasovima. Traka prikazuje udio na skali od 0 do 100%.', ['rik']],
+    listVotes: ['Broj glasova studentske liste Lista3.', ['rik']],
     snsShare: ['Udio glasova liste koalicije SNS (lista 1) među važećim glasovima.', ['rik']],
     snsVotes: ['Broj glasova liste koalicije SNS (lista 1).', ['rik']],
     validVotes: ['Broj važećih glasova.', ['rik']],
@@ -838,7 +838,7 @@
     button.append(label);
     const headingLines = column.key === 'averageNetWage2025'
       ? ['Prosječna', 'neto zarada', '2025']
-      : column.key === 'voteDifference' ? ['Razlika', 'glasova', '(lista 3 − SNS)'] : null;
+      : column.key === 'voteDifference' ? ['Razlika', 'glasova', '(Lista3 − SNS)'] : null;
     if (headingLines) {
       button.classList.add('is-three-line');
       button.setAttribute('aria-label', column.label);
