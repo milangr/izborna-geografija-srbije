@@ -45,7 +45,7 @@ button:disabled { color: #7a8793; cursor: default; background: #f3f5f8; }
 :focus-visible { outline: 3px solid #216eb3; outline-offset: 2px; }
 .map-stage { position: relative; overflow: hidden; background: #f4f7fb; border-block: 1px solid var(--line); }
 .visual-zoom { position: absolute; right: .55rem; bottom: .55rem; z-index: 2; display: flex; gap: .2rem; padding: .25rem; border: 1px solid #bdcede; border-radius: .55rem; background: #f7fafdee; box-shadow: 0 2px 8px #12243820; }
-.visual-zoom button { min-width: 38px; min-height: 38px; padding: .15rem .35rem; font-weight: 700; }
+.visual-zoom button { min-width: 34px; min-height: 34px; padding: .1rem .25rem; font-weight: 700; }
 .map-panel { display: flex; flex-direction: column; --blue-1: #70b4ed; --blue-2: #4894d5; }
 .map-panel .panel-header { order: 0; }
 .map-panel .visual-options { order: 1; }
@@ -305,7 +305,7 @@ a { color: #225c92; }
   .dashboard { --plot-height: 265px; }
 }
 @media (max-width: 540px) {
-  .visual-zoom button { min-width: 44px; min-height: 44px; }
+  .visual-zoom button { min-width: 40px; min-height: 40px; }
   .notes-sources { grid-template-columns: minmax(0, 1fr); }
   .shell { padding: 1.25rem .65rem 1rem; }
   .mobile-advice { display: block; margin: 0 0 .65rem; padding: .65rem .75rem; border-left: 3px solid #8eb9de; border-radius: .3rem; background: #f7fafd; color: var(--secondary); font-size: .82rem; line-height: 1.4; }

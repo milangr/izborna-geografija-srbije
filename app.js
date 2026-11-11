@@ -843,7 +843,6 @@
     map.classList.toggle('is-zoomed', scale > 1);
     get('map-zoom-in').disabled = scale >= maxMapZoom;
     get('map-zoom-out').disabled = scale <= 1;
-    get('map-zoom-reset').disabled = scale <= 1;
     for (const pattern of patterns) pattern.setAttribute('patternTransform', 'scale(' + 1 / scale + ')');
     hideTooltip();
   }
@@ -892,7 +891,6 @@
 
   for (const [id, factor] of [['map-zoom-in', 1.6], ['map-zoom-out', 1 / 1.6]])
     get(id).addEventListener('click', () => zoom(factor));
-  get('map-zoom-reset').addEventListener('click', () => updateView(1, width / 2, height / 2));
 
   map.addEventListener('touchstart', event => {
     if (event.touches.length !== 2) return;
@@ -1065,10 +1063,6 @@
       const h = svg.clientHeight;
       if (!w || !h) return;
       svg.classList.toggle('is-zoomed', chartScaleX > 1 || chartScaleY > 1);
-      const chartZoomed = chartScaleX > 1 || chartScaleY > 1;
-      get('scatter-zoom-in').disabled = chartScaleX >= 8 && chartScaleY >= 8;
-      get('scatter-zoom-out').disabled = !chartZoomed;
-      get('scatter-zoom-reset').disabled = !chartZoomed;
       const right = w - 24, top = 23, bottom = h - 53;
       const xKey = xControl.value, yKey = yControl.value;
       const xAxis = axis(xKey, w < 530 ? 4 : 7, chartLeft, chartScaleX);
@@ -1160,24 +1154,6 @@
       hideScatterTooltip();
       draw();
     }
-
-    function zoomChart(factor, point) {
-      if (!plot) return;
-      const fractionX = (point.x - plot.left) / (plot.right - plot.left);
-      const fractionY = (point.y - plot.top) / (plot.bottom - plot.top);
-      const nextX = Math.max(1, Math.min(8, chartScaleX * factor));
-      const nextY = Math.max(1, Math.min(8, chartScaleY * factor));
-      const left = chartLeft + fractionX * (1 / chartScaleX - 1 / nextX);
-      const top = chartTop + fractionY * (1 / chartScaleY - 1 / nextY);
-      chartScaleX = nextX;
-      chartScaleY = nextY;
-      moveChart(left, top);
-    }
-
-    for (const [id, factor] of [['scatter-zoom-in', 1.6], ['scatter-zoom-out', 1 / 1.6]])
-      get(id).addEventListener('click', () => zoomChart(factor,
-        {x: (plot.left + plot.right) / 2, y: (plot.top + plot.bottom) / 2}));
-    get('scatter-zoom-reset').addEventListener('click', () => { resetView(); draw(); });
 
     svg.addEventListener('touchstart', event => {
       if (event.touches.length !== 2 || !plot) return;
