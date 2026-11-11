@@ -7,7 +7,7 @@
   const specialResults = [...kosovoResults.filter(entry => !entry.mapped).map(entry => ({...entry, special: true})),
     ...(window.specialResults || []).map(entry => ({...entry, region: 'OTHER', district: entry.name}))];
   const tableData = [...data, ...specialResults];
-  const developmentLabels = {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'IV · devastirano'};
+  const developmentLabels = {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V'};
   for (const entry of tableData) {
     const socioeconomic = window.socioeconomicData?.[entry.name];
     entry.developmentGroup2014 = socioeconomic?.developmentGroup2014 ?? null;
@@ -350,7 +350,7 @@
   for (const [index] of developmentColumns.entries()) {
     const heading = document.createElement('th');
     heading.scope = 'col';
-    heading.textContent = ['V*', 'III · IV', 'I · II'][index];
+    heading.textContent = ['V', 'III · IV', 'I · II'][index];
     developmentHeadRow.append(heading);
   }
   developmentHead.append(developmentHeadRow);
@@ -377,7 +377,7 @@
   developmentLegend.append(developmentBody);
   const developmentNote = document.createElement('p');
   developmentNote.className = 'map-development-note';
-  developmentNote.textContent = 'V* = zvanična podgrupa IV · devastirano';
+  developmentNote.textContent = 'V = devastirano; po uredbi podgrupa IV';
   mapLegend.append(developmentNote);
   const textureCaption = document.createElement('p');
   textureCaption.className = 'map-legend-label';
@@ -616,7 +616,7 @@
     name: ['Naziv opštine ili grada za koji su prikazani rezultati. Beograd je razložen na 17 gradskih opština.', ['rik']],
     region: ['Statistička regija kojoj pripada jedinica; „Ostalo” označava glasanje bez opštinske geometrije.', ['rik']],
     district: ['Upravni okrug opštine ili grada. Za Inostranstvo i Kaznene zavode prikazan je naziv posebne kategorije.', ['rik']],
-    developmentGroup2014: ['Zvanična grupa razvijenosti JLS iz 2014.\nNapomena: Ovo je posljednja dostupna zvanična klasifikacija.\n\nI — iznad prosjeka\nII — 80–100% prosjeka\nIII — 60–80% prosjeka\nIV — ispod 60% prosjeka\nIV · devastirano — ispod 50% prosjeka\n\nSvih 17 beogradskih opština ima grupu Grada Beograda.', ['development']],
+    developmentGroup2014: ['Razvijenost JLS prema uredbi iz 2014.\nNapomena: Ovo je posljednja dostupna zvanična klasifikacija.\n\nI — iznad prosjeka\nII — 80–100% prosjeka\nIII — 60–80% prosjeka\nIV — ispod 60% prosjeka\nV — devastirano, ispod 50% prosjeka; prikazano kao peta kategorija, a po uredbi je podgrupa IV.\n\nSvih 17 beogradskih opština ima grupu Grada Beograda.', ['development']],
     voteDifference: ['Glasovi studentske liste minus glasovi SNS liste. Pozitivna traka ide udesno, negativna ulijevo.', ['rik']],
     votes: ['Udio glasova studentske liste (lista 3) među važećim glasovima. Traka prikazuje udio na skali od 0 do 100%.', ['rik']],
     listVotes: ['Broj glasova studentske liste (lista 3).', ['rik']],
@@ -1076,7 +1076,10 @@
             continue;
           }
         }
-        if (key === 'developmentGroup2014') cell.className = 'development-cell';
+        if (key === 'developmentGroup2014') {
+          cell.className = 'development-cell';
+          if (entry[key] === 5) cell.title = 'Devastirano; po uredbi podgrupa IV';
+        }
         if (key === 'voteDifference' && Number.isFinite(entry[key])) {
           cell.className = 'difference-cell';
           const bar = document.createElement('span');
@@ -1448,7 +1451,7 @@
         const span = 5;
         const min = .5 + start * span;
         return {min, max: min + span / scale, step: 1,
-          format: value => Math.round(value) === 5 ? 'IV dev.' : developmentLabels[Math.round(value)] || '—'};
+          format: value => Math.round(value) === 5 ? 'V' : developmentLabels[Math.round(value)] || '—'};
       }
       const values = plotData.filter(entry => isVisible(entry.id) && hasPlotValue(entry))
         .map(entry => entry[key]).sort((a, b) => a - b);

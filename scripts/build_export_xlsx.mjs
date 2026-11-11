@@ -16,7 +16,7 @@ if (originalRows.length !== 187 || originalRows[0][1] !== 'Opština ili grad')
 const context = {window: {}};
 vm.runInNewContext(await fs.readFile(path('socioeconomic-data.js'), 'utf8'), context);
 const socioeconomic = context.window.socioeconomicData;
-const labels = {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'IV · devastirano'};
+const labels = {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V'};
 const rows = originalRows.map((row, index) => {
   const entry = socioeconomic[row[1]];
   if (index > 0 && index < originalRows.length - 1 && row[2] !== 'Kosovo i Metohija' && row[2] !== 'Ostalo' && !entry)
