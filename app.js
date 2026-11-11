@@ -7,7 +7,11 @@
   const specialResults = [...kosovoResults.filter(entry => !entry.mapped).map(entry => ({...entry, special: true})),
     ...(window.specialResults || []).map(entry => ({...entry, region: 'OTHER', district: entry.name}))];
   const tableData = [...data, ...specialResults];
+  const developmentLabels = {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'IV · devastirano'};
   for (const entry of tableData) {
+    const socioeconomic = window.socioeconomicData?.[entry.name];
+    entry.developmentGroup2014 = socioeconomic?.developmentGroup2014 ?? null;
+    entry.averageNetWage2025 = socioeconomic?.averageNetWage2025 ?? null;
     entry.snsShare = Number.isFinite(entry.snsVotes) && Number.isFinite(entry.validVotes) && entry.validVotes > 0
       ? 100 * entry.snsVotes / entry.validVotes : null;
     entry.voteDifference = Number.isFinite(entry.listVotes) && Number.isFinite(entry.snsVotes)
@@ -433,8 +437,10 @@
     {key: 'name', label: 'Opština ili grad'},
     {key: 'region', label: 'Statistička regija', format: code => shortRegions[code] || tableRegions[code]},
     {key: 'district', label: 'Okrug', format: value => value.replace(/ okrug$/, '')},
+    {key: 'developmentGroup2014', label: 'Razvijenost (2014)', format: value => developmentLabels[value]},
     metricColumns.find(column => column.key === 'voteDifference'),
     ...metricColumns.filter(column => column.key !== 'voteDifference'),
+    {key: 'averageNetWage2025', label: 'Prosj. neto zarada (2025)', format: wholeNumber.format},
   ];
   const table = get('municipality-table');
   const tableBody = table.tBodies[0];
@@ -476,6 +482,11 @@
   districtFilter.id = 'table-district';
   districtFilter.setAttribute('aria-label', 'Okrug');
   districtFilter.add(new Option('Svi okruzi', ''));
+  const developmentFilter = document.createElement('select');
+  developmentFilter.setAttribute('aria-label', 'Stepen razvijenosti (2014)');
+  developmentFilter.add(new Option('Sve grupe', ''));
+  for (const [value, label] of Object.entries(developmentLabels))
+    developmentFilter.add(new Option(label, value));
   const filterButtons = new Map();
   const selectedRows = new Set();
   let visibleRows = [];
@@ -516,6 +527,10 @@
     heading.className = 'col-' + column.key;
     if (column.key === 'voteDifference')
       heading.title = 'Traka lijevo od sredine: više glasova za SNS. Traka desno: više glasova za studentsku listu. Ista skala za sve redove.';
+    if (column.key === 'developmentGroup2014')
+      heading.title = 'Zvanična grupa razvijenosti JLS za 2014; gradskim opštinama Beograda dodijeljena je grupa Grada Beograda.';
+    if (column.key === 'averageNetWage2025')
+      heading.title = 'Godišnji prosjek neto zarade zaposlenih prema opštini prebivališta, u dinarima.';
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'column-sort';
@@ -541,6 +556,7 @@
     if (column.key === 'name') popup.append(search);
     else if (column.key === 'region') popup.append(regionFilter);
     else if (column.key === 'district') popup.append(districtFilter);
+    else if (column.key === 'developmentGroup2014') popup.append(developmentFilter);
     else {
       const range = document.createElement('div');
       range.className = 'filter-range';
@@ -597,6 +613,7 @@
     filterButtons.get('name').classList.toggle('has-filter', Boolean(query));
     filterButtons.get('region').classList.toggle('has-filter', Boolean(region));
     filterButtons.get('district').classList.toggle('has-filter', Boolean(district));
+    filterButtons.get('developmentGroup2014').classList.toggle('has-filter', Boolean(developmentFilter.value));
     const ranges = [...rangeFilters].map(([key, [min, max]]) => {
       filterButtons.get(key).classList.toggle('has-filter', Boolean(min.value || max.value));
       return [key, Number.isNaN(min.valueAsNumber) ? -Infinity : min.valueAsNumber,
@@ -605,6 +622,7 @@
     const filtered = tableData.filter(entry => nameKeys.get(entry.id).includes(query) &&
       (!region || entry.region === region) &&
       (!district || entry.district === district) &&
+      (!developmentFilter.value || entry.developmentGroup2014 === Number(developmentFilter.value)) &&
       ranges.every(([key, min, max]) => (min === -Infinity && max === Infinity) ||
         (entry[key] != null && entry[key] >= min && entry[key] <= max)));
     const activeSelection = selectedSpecial?.id || selected?.id;
@@ -696,6 +714,7 @@
             continue;
           }
         }
+        if (key === 'developmentGroup2014') cell.className = 'development-cell';
         if (key === 'voteDifference' && Number.isFinite(entry[key])) {
           cell.className = 'difference-cell';
           const bar = document.createElement('span');
@@ -798,6 +817,7 @@
     search.value = '';
     regionFilter.value = '';
     districtFilter.value = '';
+    developmentFilter.value = '';
     for (const inputs of rangeFilters.values()) for (const input of inputs) input.value = '';
     if (clearSelection) selectedRows.clear();
     if (rerender) renderTable();

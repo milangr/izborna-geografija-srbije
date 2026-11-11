@@ -231,8 +231,10 @@ select { display: block; width: 100%; margin-top: .75rem; padding: .4rem .55rem;
 #municipality-table thead { position: sticky; top: 0; z-index: 4; background: #edf4fb; }
 #municipality-table th, #municipality-table td { padding: .52rem .6rem; border-bottom: 1px solid var(--line); text-align: right; }
 #municipality-table td:first-child { padding-left: 1.15rem; }
-#municipality-table .row-name, #municipality-table .region-cell, #municipality-table .district-cell { text-align: left; }
+#municipality-table .row-name, #municipality-table .region-cell, #municipality-table .district-cell, #municipality-table .development-cell { text-align: left; }
 #municipality-table thead th { text-align: center; }
+#municipality-table th.col-developmentGroup2014 { min-width: 8rem; }
+#municipality-table th.col-averageNetWage2025 { min-width: 9rem; }
 #municipality-table th.col-snsShare { min-width: 7rem; }
 #municipality-table th.col-voteDifference { min-width: 9rem; }
 #municipality-table .difference-bar { position: relative; display: block; min-width: 8rem; line-height: 1.35rem; isolation: isolate; }

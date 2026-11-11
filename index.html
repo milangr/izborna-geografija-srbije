@@ -15,7 +15,7 @@
   <meta property="og:image:alt" content="Izborna geografija Srbije — mapa opština i gradova">
   <title>Izborna geografija Srbije</title>
   <link rel="icon" href="./favicon.ico" type="image/x-icon" sizes="any">
-  <link rel="stylesheet" href="./style.css?v=20261111-3">
+  <link rel="stylesheet" href="./style.css?v=20261111-4">
   <script src="./data.js" defer></script>
   <script src="./beograd-results.js" defer></script>
   <script src="./beograd-shapes.js" defer></script>
@@ -23,7 +23,8 @@
   <script src="./kosovo-shapes.js" defer></script>
   <script src="./region-outlines.js" defer></script>
   <script src="./special-results.js?v=20261110-2" defer></script>
-  <script src="./app.js?v=20261111-2" defer></script>
+  <script src="./socioeconomic-data.js?v=20261111-1" defer></script>
+  <script src="./app.js?v=20261111-4" defer></script>
 </head>
 <body>
   <main class="shell">
@@ -308,7 +309,7 @@
           <button id="clear-table-filters" type="button">Očisti filtere</button>
         </div>
         <div class="table-selection-actions">
-          <a class="table-export" href="./izborna-geografija-srbije-2026.xlsx?v=20261110-5" download="izborna-geografija-srbije-2026.xlsx" title="Preuzmi svih 185 redova, bez obzira na filtere">Preuzmi XLSX · svi redovi</a>
+          <a class="table-export" href="./izborna-geografija-srbije-2026.xlsx?v=20261111-1" download="izborna-geografija-srbije-2026.xlsx" title="Preuzmi svih 185 redova, bez obzira na filtere">Preuzmi XLSX · svi redovi</a>
           <a id="jump-to-visuals" href="#map-heading" hidden>Prikaži mapu i XY ↑</a>
         </div>
       </div>
@@ -333,6 +334,8 @@
             <dl class="notes-sources">
               <div><dt>Izborni rezultati · RIK</dt><dd>Glasovi lista 3 (studentska) i 1 (koalicija SNS), važeći i nevažeći listići, izašli i upisani birači, biračka mjesta, regija i okrug. <a href="https://www.rik.parlament.gov.rs/542645/rezultati/">Konačni rezultati i mapa</a> · <a href="https://www.rik.parlament.gov.rs/export-results/680072/2">Podaci po biračkim mjestima (CSV)</a></dd></div>
               <div><dt>Stanovništvo · RZS</dt><dd>Godišnji prosjek broja stanovnika za 2025. i udio osoba 65+. <a href="https://publikacije.stat.gov.rs/G2026/HtmlL/G20261178.html">Procjene stanovništva, tabele 4 i 6</a></dd></div>
+              <div><dt>Razvijenost · Vlada RS</dt><dd>Zvanične grupe razvijenosti jedinica lokalne samouprave prema <a href="https://ras.gov.rs/uploads/2020/05/uredba-o-utvrdivanju-jedinstvene-liste-razvijenosti-regiona-i-jedinica.pdf">uredbi za 2014. godinu</a>.</dd></div>
+              <div><dt>Prosječna neto zarada · RZS</dt><dd>Prosjek za januar–decembar 2025. prema opštini prebivališta zaposlenih, u dinarima. <a href="https://publikacije.stat.gov.rs/G2026/HtmlL/G20261050.html">Zarade, tabela 4</a>.</dd></div>
               <div><dt>Starost i obrazovanje · Popis 2022</dt><dd>Udio mladih 15–29 prema <a href="https://publikacije.stat.gov.rs/G2024/PdfE/G202413051.pdf">RZS podacima o starosti</a>. Udio višeg ili visokog obrazovanja izvan Beograda prenosi <a href="https://stanjesrbije.rs/pokazatelj/degree/">Stanje Srbije</a> (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>), a za Beograd je izračunat iz <a href="https://popis2022.stat.gov.rs/popisni-podaci-eksel-tabele/">opštinskih tabela RZS-a</a>.</dd></div>
               <div><dt>Površine i granice</dt><dd>Beogradske površine: <a href="https://publikacije.stat.gov.rs/G2025/pdf/G20252058.pdf">RZS godišnjak, tabela 20.1</a>. Osnovne granice 145 jedinica: <a href="https://www.geoboundaries.org/api/current/gbOpen/SRB/ADM2/">geoBoundaries SRB ADM2</a> (© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>, <a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a>). Beogradske i kosovske opštinske granice: <a href="https://www.rik.parlament.gov.rs/542645/rezultati/">RIK mapa</a>. Osnovni obris Kosova: <a href="https://gisco-services.ec.europa.eu/distribution/v2/nuts/nuts-2024-files.html">Eurostat GISCO</a> (© EuroGeographics © UN-FAO © Turkstat).</dd></div>
             </dl>
@@ -343,6 +346,7 @@
             <ul class="notes-list">
               <li><strong>Izbori:</strong> udjeli lista 3 i 1 računaju se od važećih glasova; razlika je broj glasova liste 3 minus broj glasova liste 1. Udio nevažećih listića računa se od listića pronađenih u kutijama, a izlaznost od upisanih birača.</li>
               <li><strong>Demografija:</strong> gustina je godišnji prosjek stanovnika 2025. podijeljen površinom. Udio mladih sabira starosne grupe 15–19, 20–24 i 25–29; udio 65+ odnosi se na stanovništvo 2025, a udio višeg ili visokog obrazovanja na stanovnike od 15 godina naviše iz Popisa 2022.</li>
+              <li><strong>Razvijenost:</strong> I je iznad republičkog prosjeka, II 80–100%, III 60–80%, IV ispod 60%; „devastirano” je podgrupa IV ispod 50%. Kolona prikazuje zvaničnu klasifikaciju iz 2014, a ne procjenu za 2025. ili 2026.</li>
               <li><strong>Zbirni prikazi:</strong> bez odabrane opštine polja iznad mape i XY grafikona sažimaju uključene regije. Brojevi se sabiraju; izborni udjeli, izlaznost i gustina računaju se iz zbirnih vrijednosti, udio 65+ ponderiše se stanovništvom, a udjeli mladih i obrazovanja su prosti prosjeci jedinica s dostupnim podacima.</li>
             </ul>
           </section>
@@ -351,6 +355,7 @@
             <h3 id="notes-scope-heading">Obuhvat i ograničenja</h3>
             <ul class="notes-list">
               <li>Glasanje je održano 25. oktobra 2026, uz ponovljeno glasanje 1. novembra. Beograd je prikazan po 17 gradskih opština; gradske opštine Niša, Požarevca i Užica sabrane su u gradske cjeline.</li>
+              <li>Svih 17 beogradskih opština u koloni razvijenosti nosi grupu I, dodijeljenu Gradu Beogradu u uredbi; to nije zasebna ocjena svake gradske opštine. Za kosovske opštine, Inostranstvo i Kaznene zavode nema uporedivih opštinskih vrijednosti u novim kolonama.</li>
               <li>Za Kosovo i Metohiju rezultati su prikazani za 22 opštine. Sedam opština bez rezultata ostaje sivo; demografski pokazatelji nisu dostupni. Ukupno stanovništvo i izračunata gustina obuhvataju samo jedinice s dostupnim podacima. Opštinske granice približno su prilagođene osnovnom obrisu, kao i granice beogradskih opština.</li>
               <li>Inostranstvo i „Kazneni zavodi” nemaju opštinsku geometriju. Na mapi su zasebni krugovi, a na XY grafikonu pripadaju regiji „Ostalo”; u koloni „Okrug” imaju zasebne nazive. „Kazneni zavodi” je skraćeni naziv RIK-ove kategorije „Zavodi za izvršenje sankcija”.</li>
               <li>Beogradske površine za 2024. zaokružene su na cijeli km². Površine ostalih jedinica izračunate su iz pojednostavljenih granica, pa je gustina procjena.</li>

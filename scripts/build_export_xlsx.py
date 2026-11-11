@@ -1,8 +1,4 @@
-"""Build the complete, filter-independent XLSX linked from index.html.
-
-Uses only Python's standard library. Run from any directory:
-    python scripts/build_export_xlsx.py
-"""
+"""Shared export column definitions and compatibility entry point."""
 
 import json
 import math
@@ -207,4 +203,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import subprocess
+
+    subprocess.run(["node", str(ROOT / "scripts" / "build_export_xlsx.mjs")], check=True)
