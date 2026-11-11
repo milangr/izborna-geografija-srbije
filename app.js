@@ -442,6 +442,42 @@
     ...metricColumns.filter(column => column.key !== 'voteDifference'),
     {key: 'averageNetWage2025', label: 'Prosj. neto zarada (2025)', format: wholeNumber.format},
   ];
+  const sourceLinks = {
+    rik: ['RIK · konačni rezultati', 'https://www.rik.parlament.gov.rs/542645/rezultati/'],
+    rikCsv: ['RIK · podaci po biračkim mjestima', 'https://www.rik.parlament.gov.rs/export-results/680072/2'],
+    population: ['RZS · procjene stanovništva 2025', 'https://publikacije.stat.gov.rs/G2026/HtmlL/G20261178.html'],
+    development: ['Vlada RS · uredba za 2014', 'https://ras.gov.rs/uploads/2020/05/uredba-o-utvrdivanju-jedinstvene-liste-razvijenosti-regiona-i-jedinica.pdf'],
+    wages: ['RZS · zarade 2025, tabela 4', 'https://publikacije.stat.gov.rs/G2026/HtmlL/G20261050.html'],
+    ages: ['RZS · Popis 2022, starost', 'https://publikacije.stat.gov.rs/G2024/PdfE/G202413051.pdf'],
+    education: ['RZS · Popis 2022, obrazovanje', 'https://popis2022.stat.gov.rs/popisni-podaci-eksel-tabele/'],
+    educationShare: ['Stanje Srbije · obrazovanje', 'https://stanjesrbije.rs/pokazatelj/degree/'],
+    boundaries: ['geoBoundaries · granice opština', 'https://www.geoboundaries.org/api/current/gbOpen/SRB/ADM2/'],
+    belgradeArea: ['RZS · površine Beograda, tabela 20.1', 'https://publikacije.stat.gov.rs/G2025/pdf/G20252058.pdf'],
+  };
+  const columnHelp = {
+    name: ['Naziv opštine ili grada za koji su prikazani rezultati. Beograd je razložen na 17 gradskih opština.', ['rik']],
+    region: ['Statistička regija kojoj pripada jedinica; „Ostalo” označava glasanje bez opštinske geometrije.', ['rik']],
+    district: ['Upravni okrug opštine ili grada. Za Inostranstvo i Kaznene zavode prikazan je naziv posebne kategorije.', ['rik']],
+    developmentGroup2014: ['Zvanična grupa razvijenosti JLS iz 2014. I je iznad prosjeka, II 80–100%, III 60–80%, IV ispod 60%; devastirane su ispod 50%. Svih 17 beogradskih opština ima grupu Grada Beograda.', ['development']],
+    voteDifference: ['Glasovi studentske liste minus glasovi SNS liste. Pozitivna traka ide udesno, negativna ulijevo.', ['rik']],
+    votes: ['Udio glasova studentske liste (lista 3) među važećim glasovima.', ['rik']],
+    listVotes: ['Broj glasova studentske liste (lista 3).', ['rik']],
+    snsShare: ['Udio glasova liste koalicije SNS (lista 1) među važećim glasovima.', ['rik']],
+    snsVotes: ['Broj glasova liste koalicije SNS (lista 1).', ['rik']],
+    validVotes: ['Broj važećih glasova.', ['rik']],
+    invalidShare: ['Broj nevažećih listića podijeljen brojem listića pronađenih u kutijama.', ['rik']],
+    turnout: ['Broj birača koji su izašli podijeljen brojem upisanih birača.', ['rik']],
+    votersAttended: ['Broj birača koji su izašli na glasanje.', ['rik']],
+    registeredVoters: ['Broj upisanih birača.', ['rik']],
+    stations: ['Broj jedinstvenih biračkih mjesta u konačnim podacima RIK-a.', ['rikCsv']],
+    population: ['Godišnji prosjek procijenjenog broja stanovnika u 2025.', ['population']],
+    density: ['Procijenjeni broj stanovnika 2025. podijeljen površinom opštine u km².', ['population', 'boundaries', 'belgradeArea']],
+    areaKm2: ['Površina u km²: za beogradske opštine prema RZS-u, za ostale iz pojednostavljenih granica.', ['belgradeArea', 'boundaries']],
+    youthShare: ['Udio stanovnika od 15 do 29 godina prema Popisu 2022; zbir grupa 15–19, 20–24 i 25–29.', ['ages']],
+    age65PlusShare: ['Udio stanovnika od 65 godina naviše u procjeni stanovništva za 2025.', ['population']],
+    higherEducationShare: ['Udio stanovnika od 15 godina naviše s višim ili visokim obrazovanjem prema Popisu 2022.', ['education', 'educationShare']],
+    averageNetWage2025: ['Prosječna mjesečna neto zarada za januar–decembar 2025. prema opštini prebivališta zaposlenih, u dinarima.', ['wages']],
+  };
   const table = get('municipality-table');
   const tableBody = table.tBodies[0];
   const tableFoot = table.tFoot;
@@ -467,6 +503,49 @@
   numberHeading.className = 'row-number';
   numberHeading.textContent = 'Br.';
   headingRow.append(numberHeading);
+  const addColumnHelp = (heading, key) => {
+    const [description, sources] = columnHelp[key];
+    const info = document.createElement('button');
+    info.type = 'button';
+    info.className = 'column-help-button';
+    info.textContent = 'i';
+    info.title = description + '\nIzvor: ' + sources.map(source => sourceLinks[source][0]).join('; ');
+    info.setAttribute('aria-label', 'Opis i izvori za ' + (key === 'number' ? 'redni broj' : columns.find(column => column.key === key).label));
+    const popup = document.createElement('div');
+    popup.id = 'column-help-' + key;
+    popup.className = 'column-help-popover';
+    popup.setAttribute('popover', 'auto');
+    const paragraph = document.createElement('p');
+    paragraph.textContent = description;
+    popup.append(paragraph);
+    const sourceLine = document.createElement('div');
+    sourceLine.className = 'column-help-sources';
+    sourceLine.append('Izvor: ');
+    if (sources.length) for (const [index, source] of sources.entries()) {
+      if (index) sourceLine.append(' · ');
+      const [label, href] = sourceLinks[source];
+      const link = document.createElement('a');
+      link.href = href;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = label;
+      sourceLine.append(link);
+    }
+    else sourceLine.append('redni broj je generisan u tabeli');
+    popup.append(sourceLine);
+    info.setAttribute('popovertarget', popup.id);
+    info.setAttribute('aria-describedby', popup.id);
+    popup.addEventListener('beforetoggle', event => {
+      if (event.newState !== 'open') return;
+      const rect = info.getBoundingClientRect();
+      popup.style.left = Math.max(8, Math.min(rect.left, document.documentElement.clientWidth - 328)) + 'px';
+      popup.style.top = Math.max(8, Math.min(rect.bottom + 5, window.innerHeight - 180)) + 'px';
+    });
+    heading.append(info);
+    table.closest('.table-panel').append(popup);
+  };
+  columnHelp.number = ['Redni broj reda u početnom abecednom poretku.', []];
+  addColumnHelp(numberHeading, 'number');
   const headers = new Map();
   const rangeFilters = new Map();
   const search = document.createElement('input');
@@ -525,12 +604,6 @@
     const heading = document.createElement('th');
     heading.scope = 'col';
     heading.className = 'col-' + column.key;
-    if (column.key === 'voteDifference')
-      heading.title = 'Traka lijevo od sredine: više glasova za SNS. Traka desno: više glasova za studentsku listu. Ista skala za sve redove.';
-    if (column.key === 'developmentGroup2014')
-      heading.title = 'Zvanična grupa razvijenosti JLS za 2014; gradskim opštinama Beograda dodijeljena je grupa Grada Beograda.';
-    if (column.key === 'averageNetWage2025')
-      heading.title = 'Godišnji prosjek neto zarade zaposlenih prema opštini prebivališta, u dinarima.';
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'column-sort';
@@ -543,6 +616,7 @@
     const group = document.createElement('div');
     group.className = 'column-heading';
     group.append(button);
+    addColumnHelp(group, column.key);
     heading.append(group);
     headingRow.append(heading);
     headers.set(column.key, heading);

@@ -268,6 +268,13 @@ select { display: block; width: 100%; margin-top: .75rem; padding: .4rem .55rem;
 #municipality-table .table-filter-value:hover, #municipality-table .table-filter-value[aria-pressed="true"] { text-decoration: underline; }
 #municipality-table thead button { border: 0; background: transparent; min-height: 36px; padding: .15rem .2rem; line-height: 1.25; font-weight: 700; text-align: inherit; }
 .column-heading { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; padding-bottom: 1.4rem; }
+#municipality-table thead .column-help-button { width: 19px; min-width: 19px; height: 19px; min-height: 19px; padding: 0; border: 1px solid #7899b8; border-radius: 50%; color: #245681; font-size: .72rem; line-height: 1; }
+#municipality-table thead .column-help-button:hover, #municipality-table thead .column-help-button:focus-visible { background: #d4e8fa; }
+#municipality-table thead .row-number .column-help-button { display: block; margin: .2rem auto 0; }
+.column-help-popover { position: fixed; inset: auto; margin: 0; width: min(320px, calc(100vw - 16px)); max-height: min(60vh, 320px); overflow: auto; padding: .7rem .8rem; border: 1px solid #91abc2; border-radius: .55rem; background: #fff; color: var(--ink); box-shadow: 0 4px 18px #12243836; font-size: .82rem; line-height: 1.45; text-align: left; }
+.column-help-popover p { margin: 0 0 .5rem; }
+.column-help-sources { padding-top: .45rem; border-top: 1px solid var(--line); }
+.column-help-sources a { color: #225c92; }
 #municipality-table thead .column-filter-button { position: absolute; right: 0; bottom: 0; display: grid; place-items: center; width: 22px; min-width: 22px; height: 22px; min-height: 22px; padding: 0; color: #355f86; }
 #municipality-table thead .column-filter-button:hover, #municipality-table thead .column-filter-button.has-filter { color: #174a78; background: #d4e8fa; }
 .column-filter-button svg { width: 11px; height: 11px; }
