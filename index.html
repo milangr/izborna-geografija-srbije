@@ -15,7 +15,7 @@
   <meta property="og:image:alt" content="Izborna geografija Srbije — mapa opština i gradova">
   <title>Izborna geografija Srbije</title>
   <link rel="icon" href="./favicon.ico" type="image/x-icon" sizes="any">
-  <link rel="stylesheet" href="./style.css?v=20261111-1">
+  <link rel="stylesheet" href="./style.css?v=20261111-2">
   <script src="./data.js" defer></script>
   <script src="./beograd-results.js" defer></script>
   <script src="./beograd-shapes.js" defer></script>
@@ -23,7 +23,7 @@
   <script src="./kosovo-shapes.js" defer></script>
   <script src="./region-outlines.js" defer></script>
   <script src="./special-results.js?v=20261110-2" defer></script>
-  <script src="./app.js?v=20261110-26" defer></script>
+  <script src="./app.js?v=20261111-1" defer></script>
 </head>
 <body>
   <main class="shell">
@@ -31,7 +31,7 @@
       <h1>Izborna geografija Srbije</h1>
       <a class="badge" href="https://www.rik.parlament.gov.rs/542645/rezultati/" target="_blank" rel="noopener noreferrer" aria-label="Konačni rezultati parlamentarnih izbora 2026. na sajtu RIK-a">Parlamentarni izbori 2026 ↗</a>
     </header>
-    <p class="mobile-advice">Za detaljno poređenje mape, grafikona i tabele preporučujemo računar. Na telefonu su dostupni svi podaci, uz pomjeranje tabele u stranu.</p>
+    <p class="mobile-advice">Za detaljno poređenje mape, grafikona i tabele preporučujemo računar. Na telefonu zumirajte mapu i XY grafikon s dva prsta ili dugmadima +/−; tabelu pomjerajte u stranu.</p>
     <nav class="mobile-jumps" aria-label="Brza navigacija"><a href="#map-heading">Mapa</a><a href="#scatter-heading">XY grafikon</a><a href="#table-heading">Tabela</a><a href="#notes-heading">Izvori</a></nav>
     <div class="dashboard">
       <section class="panel map-panel" aria-labelledby="map-heading">
@@ -52,6 +52,11 @@
           </div>
         </div>
         <div class="map-stage">
+          <div class="visual-zoom" role="group" aria-label="Zumiranje mape">
+            <button type="button" id="map-zoom-in" aria-label="Uvećaj mapu">+</button>
+            <button type="button" id="map-zoom-out" aria-label="Smanji mapu" disabled>−</button>
+            <button type="button" id="map-zoom-reset" aria-label="Prikaži cijelu mapu" disabled>1:1</button>
+          </div>
           <svg class="map" viewBox="0 0 396 465" role="img" aria-label="Mapa Srbije po opštinama i gradovima">
       <defs><pattern data-map-pattern="" id="rs-municipal-dots-0" width="11" height="11" patternUnits="userSpaceOnUse">
           <circle cx="2" cy="2" r=".92" fill="var(--dot)" fill-opacity=".70"/>
@@ -262,6 +267,11 @@
       </div>
       <ul class="scatter-regions" aria-label="Boje krugova"></ul>
       <div class="scatter-stage">
+        <div class="visual-zoom" role="group" aria-label="Zumiranje XY grafikona">
+          <button type="button" id="scatter-zoom-in" aria-label="Uvećaj XY grafikon">+</button>
+          <button type="button" id="scatter-zoom-out" aria-label="Smanji XY grafikon" disabled>−</button>
+          <button type="button" id="scatter-zoom-reset" aria-label="Prikaži cijeli XY grafikon" disabled>1:1</button>
+        </div>
         <svg class="scatter-plot" role="img" aria-labelledby="scatter-heading scatter-description">
           <desc id="scatter-description"></desc>
         </svg>
@@ -287,7 +297,7 @@
               <input id="scatter-y-max" aria-label="Kraj Y ose" type="range" min="0" max="100" step="0.5" value="100">
             </div>
           </div>
-          <span class="scatter-zoom-hint">Pomjeri krajeve raspona ili povuci grafikon</span>
+          <span class="scatter-zoom-hint">Pomjeri krajeve raspona, povuci uvećani grafikon ili ga zumiraj s dva prsta</span>
         </div>
       </div>
       </section>

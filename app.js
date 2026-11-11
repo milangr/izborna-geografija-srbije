@@ -114,6 +114,8 @@
   let selected = null;
   let selectedSpecial = null;
   let drag = null;
+  let mapPinch = null;
+  let ignoreMapClickUntil = 0;
   let visualFilter = null;
   let scatter = null;
   const isVisible = id => selectedRegions.has(byId.get(id).region) && (!visualFilter || visualFilter.has(id));
@@ -839,6 +841,9 @@
     top = Math.max(0, Math.min(height - height / scale, y - height / (2 * scale)));
     map.setAttribute('viewBox', [left, top, width / scale, height / scale].join(' '));
     map.classList.toggle('is-zoomed', scale > 1);
+    get('map-zoom-in').disabled = scale >= maxMapZoom;
+    get('map-zoom-out').disabled = scale <= 1;
+    get('map-zoom-reset').disabled = scale <= 1;
     for (const pattern of patterns) pattern.setAttribute('patternTransform', 'scale(' + 1 / scale + ')');
     hideTooltip();
   }
@@ -879,6 +884,39 @@
     return Math.max(1, Math.min(maximum, current * Math.exp(-delta * .002)));
   }
 
+  function touchPair(touches) {
+    const a = touches[0], b = touches[1];
+    return {x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2,
+      distance: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY)};
+  }
+
+  for (const [id, factor] of [['map-zoom-in', 1.6], ['map-zoom-out', 1 / 1.6]])
+    get(id).addEventListener('click', () => zoom(factor));
+  get('map-zoom-reset').addEventListener('click', () => updateView(1, width / 2, height / 2));
+
+  map.addEventListener('touchstart', event => {
+    if (event.touches.length !== 2) return;
+    const pair = touchPair(event.touches);
+    const transform = map.getScreenCTM();
+    if (!transform || !pair.distance) return;
+    mapPinch = {...pair, scale, anchor: new DOMPoint(pair.x, pair.y).matrixTransform(transform.inverse())};
+    drag = null;
+    ignoreMapClickUntil = Date.now() + 500;
+  }, {passive: true});
+  map.addEventListener('touchmove', event => {
+    if (!mapPinch || event.touches.length !== 2) return;
+    event.preventDefault();
+    const pair = touchPair(event.touches);
+    const next = Math.max(1, Math.min(maxMapZoom, mapPinch.scale * pair.distance / mapPinch.distance));
+    const bounds = map.getBoundingClientRect();
+    const pixelsPerUnit = map.getScreenCTM().a * next / scale;
+    updateView(next, mapPinch.anchor.x + (bounds.left + bounds.width / 2 - pair.x) / pixelsPerUnit,
+      mapPinch.anchor.y + (bounds.top + bounds.height / 2 - pair.y) / pixelsPerUnit);
+    ignoreMapClickUntil = Date.now() + 500;
+  }, {passive: false});
+  for (const type of ['touchend', 'touchcancel'])
+    map.addEventListener(type, event => { if (event.touches.length < 2) mapPinch = null; });
+
   map.addEventListener('wheel', event => {
     if (event.ctrlKey) return;
     const next = wheelScale(event, scale, maxMapZoom);
@@ -893,7 +931,7 @@
 
 
   map.addEventListener('click', event => {
-    if (drag?.moved) return;
+    if (drag?.moved || Date.now() < ignoreMapClickUntil) return;
     const unit = event.target.closest('[data-unit]');
     if (syncVisualFilters.checked) clearTableFilters(true);
     choose(unit);
@@ -923,6 +961,7 @@
     drag = {id: event.pointerId, x: event.clientX, y: event.clientY, left, top, moved: false};
   });
   map.addEventListener('pointermove', event => {
+    if (mapPinch) return;
     if (!drag || event.pointerId !== drag.id || !event.buttons || scale === 1) {
       if (!event.buttons) drag = null;
       showTooltip(event);
@@ -984,6 +1023,8 @@
     let chartTop = 0;
     let plot;
     let chartDrag = null;
+    let chartPinch = null;
+    let ignoreChartClickUntil = 0;
 
     for (const entry of plotData) {
       const dot = svgNode('circle', {class: 'scatter-mark' + (entry.special ? ' is-special' : ''),
@@ -1024,6 +1065,10 @@
       const h = svg.clientHeight;
       if (!w || !h) return;
       svg.classList.toggle('is-zoomed', chartScaleX > 1 || chartScaleY > 1);
+      const chartZoomed = chartScaleX > 1 || chartScaleY > 1;
+      get('scatter-zoom-in').disabled = chartScaleX >= 8 && chartScaleY >= 8;
+      get('scatter-zoom-out').disabled = !chartZoomed;
+      get('scatter-zoom-reset').disabled = !chartZoomed;
       const right = w - 24, top = 23, bottom = h - 53;
       const xKey = xControl.value, yKey = yControl.value;
       const xAxis = axis(xKey, w < 530 ? 4 : 7, chartLeft, chartScaleX);
@@ -1095,6 +1140,7 @@
       chartTop = 0;
       syncZoomControls();
       chartDrag = null;
+      chartPinch = null;
       svg.classList.remove('is-dragging');
       hideScatterTooltip();
     }
@@ -1114,6 +1160,52 @@
       hideScatterTooltip();
       draw();
     }
+
+    function zoomChart(factor, point) {
+      if (!plot) return;
+      const fractionX = (point.x - plot.left) / (plot.right - plot.left);
+      const fractionY = (point.y - plot.top) / (plot.bottom - plot.top);
+      const nextX = Math.max(1, Math.min(8, chartScaleX * factor));
+      const nextY = Math.max(1, Math.min(8, chartScaleY * factor));
+      const left = chartLeft + fractionX * (1 / chartScaleX - 1 / nextX);
+      const top = chartTop + fractionY * (1 / chartScaleY - 1 / nextY);
+      chartScaleX = nextX;
+      chartScaleY = nextY;
+      moveChart(left, top);
+    }
+
+    for (const [id, factor] of [['scatter-zoom-in', 1.6], ['scatter-zoom-out', 1 / 1.6]])
+      get(id).addEventListener('click', () => zoomChart(factor,
+        {x: (plot.left + plot.right) / 2, y: (plot.top + plot.bottom) / 2}));
+    get('scatter-zoom-reset').addEventListener('click', () => { resetView(); draw(); });
+
+    svg.addEventListener('touchstart', event => {
+      if (event.touches.length !== 2 || !plot) return;
+      const pair = touchPair(event.touches);
+      if (!pair.distance) return;
+      const bounds = svg.getBoundingClientRect();
+      const fractionX = Math.max(0, Math.min(1, (pair.x - bounds.left - plot.left) / (plot.right - plot.left)));
+      const fractionY = Math.max(0, Math.min(1, (pair.y - bounds.top - plot.top) / (plot.bottom - plot.top)));
+      chartPinch = {distance: pair.distance, scaleX: chartScaleX, scaleY: chartScaleY,
+        anchorX: chartLeft + fractionX / chartScaleX, anchorY: chartTop + fractionY / chartScaleY};
+      chartDrag = null;
+      ignoreChartClickUntil = Date.now() + 500;
+    }, {passive: true});
+    svg.addEventListener('touchmove', event => {
+      if (!chartPinch || event.touches.length !== 2) return;
+      event.preventDefault();
+      const pair = touchPair(event.touches);
+      const bounds = svg.getBoundingClientRect();
+      const fractionX = Math.max(0, Math.min(1, (pair.x - bounds.left - plot.left) / (plot.right - plot.left)));
+      const fractionY = Math.max(0, Math.min(1, (pair.y - bounds.top - plot.top) / (plot.bottom - plot.top)));
+      chartScaleX = Math.max(1, Math.min(8, chartPinch.scaleX * pair.distance / chartPinch.distance));
+      chartScaleY = Math.max(1, Math.min(8, chartPinch.scaleY * pair.distance / chartPinch.distance));
+      moveChart(chartPinch.anchorX - fractionX / chartScaleX,
+        chartPinch.anchorY - fractionY / chartScaleY);
+      ignoreChartClickUntil = Date.now() + 500;
+    }, {passive: false});
+    for (const type of ['touchend', 'touchcancel'])
+      svg.addEventListener(type, event => { if (event.touches.length < 2) chartPinch = null; });
 
     function syncZoomControls() {
       for (const [bounds, min, max] of [
@@ -1169,12 +1261,13 @@
 
     svg.addEventListener('pointerdown', event => {
       chartDrag = null;
-      if ((chartScaleX === 1 && chartScaleY === 1) || event.button !== 0 || event.pointerType === 'touch' || !plotPoint(event)) return;
+      if ((chartScaleX === 1 && chartScaleY === 1) || event.button !== 0 || !plotPoint(event)) return;
       chartDrag = {id: event.pointerId, x: event.clientX, y: event.clientY,
         left: chartLeft, top: chartTop, moved: false};
     });
 
     function dragChart(event) {
+      if (chartPinch) return false;
       if (!chartDrag || event.pointerId !== chartDrag.id || !(event.buttons & 1) || (chartScaleX === 1 && chartScaleY === 1)) return false;
       const dx = event.clientX - chartDrag.x;
       const dy = event.clientY - chartDrag.y;
@@ -1322,6 +1415,7 @@
       svg.addEventListener(type, () => svg.classList.remove('is-dragging'));
     }
     svg.addEventListener('click', event => {
+      if (Date.now() < ignoreChartClickUntil) return;
       if (chartDrag?.moved) {
         chartDrag = null;
         return;

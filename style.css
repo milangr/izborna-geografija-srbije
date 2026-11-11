@@ -44,6 +44,8 @@ button:hover:not(:disabled) { background: #eaf3fb; }
 button:disabled { color: #7a8793; cursor: default; background: #f3f5f8; }
 :focus-visible { outline: 3px solid #216eb3; outline-offset: 2px; }
 .map-stage { position: relative; overflow: hidden; background: #f4f7fb; border-block: 1px solid var(--line); }
+.visual-zoom { position: absolute; right: .55rem; bottom: .55rem; z-index: 2; display: flex; gap: .2rem; padding: .25rem; border: 1px solid #bdcede; border-radius: .55rem; background: #f7fafdee; box-shadow: 0 2px 8px #12243820; }
+.visual-zoom button { min-width: 38px; min-height: 38px; padding: .15rem .35rem; font-weight: 700; }
 .map-panel { display: flex; flex-direction: column; --blue-1: #70b4ed; --blue-2: #4894d5; }
 .map-panel .panel-header { order: 0; }
 .map-panel .visual-options { order: 1; }
@@ -59,11 +61,11 @@ button:disabled { color: #7a8793; cursor: default; background: #f3f5f8; }
 .benchmark-point.is-above { background: #3f9b79; }
 .benchmark-point.is-average { background: #6b8297; }
 .map { display: block; width: 100%; height: calc(var(--plot-height) + 60px); touch-action: pan-y; }
-.map-specials { position: absolute; top: .55rem; right: .55rem; z-index: 2; display: flex; gap: .3rem; padding: .35rem; border: 1px solid #bdcede; border-radius: .65rem; background: #f7fafded; box-shadow: 0 2px 8px #12243820; }
-.map-special-button { display: grid; justify-items: center; align-content: start; gap: .25rem; width: 5.2rem; min-width: 0; min-height: 0; padding: .2rem; border: 0; background: transparent; color: var(--ink); font-size: .68rem; font-weight: 700; line-height: 1.15; text-align: center; }
+.map-specials { position: absolute; top: .55rem; right: .55rem; z-index: 2; display: flex; gap: .15rem; padding: .2rem; border: 1px solid #bdcede; border-radius: .55rem; background: #f7fafded; box-shadow: 0 2px 8px #12243820; }
+.map-special-button { display: grid; justify-items: center; align-content: center; gap: .1rem; width: 4.3rem; min-width: 0; min-height: 44px; padding: .15rem; border: 0; background: transparent; color: var(--ink); font-size: .61rem; font-weight: 700; line-height: 1.1; text-align: center; }
 .map-special-button:hover:not(:disabled), .map-special-button[aria-pressed="true"] { background: #dcebf9; }
 .map-special-button:disabled { opacity: .55; }
-.map-special-circle { position: relative; width: 2.1rem; height: 2.1rem; overflow: hidden; border: 1px solid #364d65; border-radius: 50%; background: var(--special-color, var(--muted)); }
+.map-special-circle { position: relative; width: 1.5rem; height: 1.5rem; overflow: hidden; border: 1px solid #364d65; border-radius: 50%; background: var(--special-color, var(--muted)); }
 .map-special-circle::after { position: absolute; inset: 0; background-image: radial-gradient(circle, var(--dot) .9px, transparent 1px); background-size: var(--dot-spacing, 11px) var(--dot-spacing, 11px); content: ''; }
 .map-special-circle.no-texture::after { display: none; }
 .map-special-circle.v0 { --special-color: var(--blue-0); }
@@ -166,9 +168,9 @@ select { display: block; width: 100%; margin-top: .75rem; padding: .4rem .55rem;
 .metric-result .plot-benchmark { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .table-panel { margin-top: 1rem; }
 .scatter-stage { position: relative; overflow: hidden; border-block: 1px solid var(--line); }
-.scatter-plot { display: block; width: 100%; height: var(--plot-height); }
+.scatter-plot { display: block; width: 100%; height: var(--plot-height); touch-action: pan-y; }
 .scatter-plot.is-zoomed, .scatter-plot.is-zoomed .scatter-mark { cursor: grab; }
-.scatter-plot.is-zoomed { user-select: none; }
+.scatter-plot.is-zoomed { user-select: none; touch-action: none; }
 .scatter-plot.is-dragging, .scatter-plot.is-dragging .scatter-mark { cursor: grabbing; }
 .scatter-plot text { fill: var(--secondary); font-size: 12px; }
 .scatter-plot .axis-title { fill: var(--ink); font-weight: 650; }
@@ -303,6 +305,7 @@ a { color: #225c92; }
   .dashboard { --plot-height: 265px; }
 }
 @media (max-width: 540px) {
+  .visual-zoom button { min-width: 44px; min-height: 44px; }
   .notes-sources { grid-template-columns: minmax(0, 1fr); }
   .shell { padding: 1.25rem .65rem 1rem; }
   .mobile-advice { display: block; margin: 0 0 .65rem; padding: .65rem .75rem; border-left: 3px solid #8eb9de; border-radius: .3rem; background: #f7fafd; color: var(--secondary); font-size: .82rem; line-height: 1.4; }
