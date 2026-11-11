@@ -17,7 +17,7 @@ body { margin: 0; }
 [hidden] { display: none !important; }
 .shell { max-width: 1220px; padding: 1.25rem 1.4rem 1.5rem; margin-inline: auto; }
 .page-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; margin-bottom: 1rem; }
-.mobile-advice, .mobile-jumps, .table-scroll-hint { display: none; }
+.mobile-advice, .mobile-jumps { display: none; }
 .badge { background: #dce9f6; color: #244d73; font-size: .75rem; font-weight: 700; padding: .35rem .65rem; border-radius: 100px; text-decoration: none; }
 .badge:hover { text-decoration: underline; }
 h1 { margin: 0; font-size: clamp(1.75rem, 3.2vw, 2.5rem); line-height: 1.08; letter-spacing: -.045em; }
@@ -268,13 +268,17 @@ select { display: block; width: 100%; margin-top: .75rem; padding: .4rem .55rem;
 #municipality-table .table-filter-value:hover, #municipality-table .table-filter-value[aria-pressed="true"] { text-decoration: underline; }
 #municipality-table thead button { border: 0; background: transparent; min-height: 36px; padding: .15rem .2rem; line-height: 1.25; font-weight: 700; text-align: inherit; }
 .column-heading { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; padding-bottom: 1.4rem; }
-#municipality-table thead .column-help-button { width: 19px; min-width: 19px; height: 19px; min-height: 19px; padding: 0; border: 1px solid #7899b8; border-radius: 50%; color: #245681; font-size: .72rem; line-height: 1; }
-#municipality-table thead .column-help-button:hover, #municipality-table thead .column-help-button:focus-visible { background: #d4e8fa; }
-#municipality-table thead .row-number .column-help-button { display: block; margin: .2rem auto 0; }
+.column-heading .column-sort:hover, .column-heading .column-sort:focus-visible { text-decoration: underline; }
+#municipality-table thead .column-drag-handle { position: absolute; left: 0; bottom: 0; width: 22px; min-width: 22px; height: 22px; min-height: 22px; padding: 0; color: #355f86; cursor: grab; touch-action: none; user-select: none; }
+#municipality-table thead .column-drag-handle:active { cursor: grabbing; }
+#municipality-table thead .column-drag-handle:hover, #municipality-table thead .column-drag-handle:focus-visible { background: #d4e8fa; }
+#municipality-table thead th[data-drop-side="before"] { box-shadow: inset 3px 0 #216eb3; }
+#municipality-table thead th[data-drop-side="after"] { box-shadow: inset -3px 0 #216eb3; }
 .column-help-popover { position: fixed; inset: auto; margin: 0; width: min(320px, calc(100vw - 16px)); max-height: min(60vh, 320px); overflow: auto; padding: .7rem .8rem; border: 1px solid #91abc2; border-radius: .55rem; background: #fff; color: var(--ink); box-shadow: 0 4px 18px #12243836; font-size: .82rem; line-height: 1.45; text-align: left; }
 .column-help-popover p { margin: 0 0 .5rem; }
 .column-help-sources { padding-top: .45rem; border-top: 1px solid var(--line); }
 .column-help-sources a { color: #225c92; }
+.table-scroll-hint { display: block; margin: 0; padding: .5rem .8rem; border-top: 1px solid var(--line); background: #fff; color: var(--secondary); font-size: .8rem; }
 #municipality-table thead .column-filter-button { position: absolute; right: 0; bottom: 0; display: grid; place-items: center; width: 22px; min-width: 22px; height: 22px; min-height: 22px; padding: 0; color: #355f86; }
 #municipality-table thead .column-filter-button:hover, #municipality-table thead .column-filter-button.has-filter { color: #174a78; background: #d4e8fa; }
 .column-filter-button svg { width: 11px; height: 11px; }
@@ -346,5 +350,4 @@ a { color: #225c92; }
   .region-picker label { align-items: center; min-height: 40px; font-size: .82rem; }
   .region-picker input { width: 18px; height: 18px; }
   .region-only { min-height: 40px; padding: .2rem .4rem; font-size: .78rem; }
-  .table-scroll-hint { display: block; margin: 0; padding: .5rem .8rem; border-top: 1px solid var(--line); background: #fff; color: var(--secondary); font-size: .8rem; }
 }

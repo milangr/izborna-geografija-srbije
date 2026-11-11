@@ -502,19 +502,17 @@
   numberHeading.scope = 'col';
   numberHeading.className = 'row-number';
   numberHeading.textContent = 'Br.';
+  numberHeading.tabIndex = 0;
   headingRow.append(numberHeading);
-  const addColumnHelp = (heading, key) => {
+  let activeColumnHelp = null;
+  let helpHideTimer = null;
+  const addColumnHelp = (trigger, key) => {
     const [description, sources] = columnHelp[key];
-    const info = document.createElement('button');
-    info.type = 'button';
-    info.className = 'column-help-button';
-    info.textContent = 'i';
-    info.title = description + '\nIzvor: ' + sources.map(source => sourceLinks[source][0]).join('; ');
-    info.setAttribute('aria-label', 'Opis i izvori za ' + (key === 'number' ? 'redni broj' : columns.find(column => column.key === key).label));
     const popup = document.createElement('div');
     popup.id = 'column-help-' + key;
     popup.className = 'column-help-popover';
-    popup.setAttribute('popover', 'auto');
+    popup.setAttribute('popover', 'manual');
+    popup.setAttribute('role', 'tooltip');
     const paragraph = document.createElement('p');
     paragraph.textContent = description;
     popup.append(paragraph);
@@ -533,15 +531,34 @@
     }
     else sourceLine.append('redni broj je generisan u tabeli');
     popup.append(sourceLine);
-    info.setAttribute('popovertarget', popup.id);
-    info.setAttribute('aria-describedby', popup.id);
-    popup.addEventListener('beforetoggle', event => {
-      if (event.newState !== 'open') return;
-      const rect = info.getBoundingClientRect();
+    trigger.setAttribute('aria-describedby', popup.id);
+    const show = () => {
+      if (columnDrag) return;
+      clearTimeout(helpHideTimer);
+      if (activeColumnHelp && activeColumnHelp !== popup) activeColumnHelp.hidePopover();
+      const rect = trigger.getBoundingClientRect();
       popup.style.left = Math.max(8, Math.min(rect.left, document.documentElement.clientWidth - 328)) + 'px';
       popup.style.top = Math.max(8, Math.min(rect.bottom + 5, window.innerHeight - 180)) + 'px';
-    });
-    heading.append(info);
+      if (!popup.matches(':popover-open')) popup.showPopover();
+      activeColumnHelp = popup;
+    };
+    const scheduleHide = () => {
+      clearTimeout(helpHideTimer);
+      helpHideTimer = setTimeout(() => {
+        if (activeColumnHelp === popup && popup.matches(':popover-open')) {
+          popup.hidePopover();
+          activeColumnHelp = null;
+        }
+      }, 160);
+    };
+    trigger.addEventListener('mouseenter', show);
+    trigger.addEventListener('mouseleave', scheduleHide);
+    trigger.addEventListener('focus', show);
+    trigger.addEventListener('blur', scheduleHide);
+    popup.addEventListener('mouseenter', () => clearTimeout(helpHideTimer));
+    popup.addEventListener('mouseleave', scheduleHide);
+    popup.addEventListener('focusin', () => clearTimeout(helpHideTimer));
+    popup.addEventListener('focusout', scheduleHide);
     table.closest('.table-panel').append(popup);
   };
   columnHelp.number = ['Redni broj reda u početnom abecednom poretku.', []];
@@ -600,10 +617,35 @@
       districtFilter.value = '';
   });
 
+  let columnDrag = null;
+  const tableScroll = table.closest('.table-scroll');
+  const clearColumnDrop = () => {
+    for (const heading of headingRow.cells) heading.removeAttribute('data-drop-side');
+  };
+  const moveColumn = (sourceKey, targetKey, side) => {
+    if (sourceKey === targetKey) return;
+    const sourceIndex = columns.findIndex(column => column.key === sourceKey);
+    const targetIndex = columns.findIndex(column => column.key === targetKey);
+    if (sourceIndex < 1 || targetIndex < 1) return;
+    const [column] = columns.splice(sourceIndex, 1);
+    const index = columns.findIndex(item => item.key === targetKey) + (side === 'after' ? 1 : 0);
+    columns.splice(index, 0, column);
+    headingRow.replaceChildren(selectionHeading, numberHeading, ...columns.map(item => headers.get(item.key)));
+    renderTable();
+  };
+  const finishColumnDrag = event => {
+    if (!columnDrag || event.pointerId !== columnDrag.pointerId) return;
+    const {sourceKey, targetKey, side} = columnDrag;
+    columnDrag = null;
+    document.body.style.userSelect = '';
+    clearColumnDrop();
+    if (event.type === 'pointerup' && targetKey) moveColumn(sourceKey, targetKey, side);
+  };
   for (const column of columns) {
     const heading = document.createElement('th');
     heading.scope = 'col';
     heading.className = 'col-' + column.key;
+    heading.dataset.columnKey = column.key;
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'column-sort';
@@ -616,7 +658,58 @@
     const group = document.createElement('div');
     group.className = 'column-heading';
     group.append(button);
-    addColumnHelp(group, column.key);
+    addColumnHelp(button, column.key);
+    if (column.key !== 'name') {
+      const grip = document.createElement('button');
+      grip.type = 'button';
+      grip.className = 'column-drag-handle';
+      grip.textContent = '⋮⋮';
+      grip.title = 'Prevuci za promjenu redoslijeda kolone';
+      grip.setAttribute('aria-label', 'Pomjeri kolonu ' + column.label);
+      grip.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        if (activeColumnHelp) {
+          activeColumnHelp.hidePopover();
+          activeColumnHelp = null;
+        }
+        columnDrag = {pointerId: event.pointerId, sourceKey: column.key, startX: event.clientX,
+          startY: event.clientY, targetKey: null, side: null};
+        grip.setPointerCapture(event.pointerId);
+        document.body.style.userSelect = 'none';
+        event.preventDefault();
+      });
+      grip.addEventListener('pointermove', event => {
+        if (!columnDrag || event.pointerId !== columnDrag.pointerId) return;
+        if (Math.hypot(event.clientX - columnDrag.startX, event.clientY - columnDrag.startY) < 5) return;
+        const scrollRect = tableScroll.getBoundingClientRect();
+        if (event.clientX > scrollRect.right - 28) tableScroll.scrollLeft += 18;
+        else if (event.clientX < scrollRect.left + 28) tableScroll.scrollLeft -= 18;
+        clearColumnDrop();
+        const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('th[data-column-key]');
+        const targetKey = target?.dataset.columnKey;
+        if (!targetKey || targetKey === 'name' || targetKey === columnDrag.sourceKey) {
+          columnDrag.targetKey = null;
+          return;
+        }
+        const side = event.clientX < target.getBoundingClientRect().left + target.getBoundingClientRect().width / 2
+          ? 'before' : 'after';
+        target.dataset.dropSide = side;
+        columnDrag.targetKey = targetKey;
+        columnDrag.side = side;
+      });
+      grip.addEventListener('pointerup', finishColumnDrag);
+      grip.addEventListener('pointercancel', finishColumnDrag);
+      grip.addEventListener('keydown', event => {
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+        const index = columns.findIndex(item => item.key === column.key);
+        const adjacent = columns[index + (event.key === 'ArrowLeft' ? -1 : 1)];
+        if (!adjacent || adjacent.key === 'name') return;
+        event.preventDefault();
+        moveColumn(column.key, adjacent.key, event.key === 'ArrowLeft' ? 'before' : 'after');
+        grip.focus();
+      });
+      group.append(grip);
+    }
     heading.append(group);
     headingRow.append(heading);
     headers.set(column.key, heading);
