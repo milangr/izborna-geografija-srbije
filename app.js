@@ -458,7 +458,7 @@
     name: ['Naziv opštine ili grada za koji su prikazani rezultati. Beograd je razložen na 17 gradskih opština.', ['rik']],
     region: ['Statistička regija kojoj pripada jedinica; „Ostalo” označava glasanje bez opštinske geometrije.', ['rik']],
     district: ['Upravni okrug opštine ili grada. Za Inostranstvo i Kaznene zavode prikazan je naziv posebne kategorije.', ['rik']],
-    developmentGroup2014: ['Zvanična grupa razvijenosti JLS iz 2014. I je iznad prosjeka, II 80–100%, III 60–80%, IV ispod 60%; devastirane su ispod 50%. Svih 17 beogradskih opština ima grupu Grada Beograda.', ['development']],
+    developmentGroup2014: ['Zvanična grupa razvijenosti JLS iz 2014.\nI — iznad prosjeka\nII — 80–100% prosjeka\nIII — 60–80% prosjeka\nIV — ispod 60% prosjeka\nIV · devastirano — ispod 50% prosjeka\n\nSvih 17 beogradskih opština ima grupu Grada Beograda.', ['development']],
     voteDifference: ['Glasovi studentske liste minus glasovi SNS liste. Pozitivna traka ide udesno, negativna ulijevo.', ['rik']],
     votes: ['Udio glasova studentske liste (lista 3) među važećim glasovima.', ['rik']],
     listVotes: ['Broj glasova studentske liste (lista 3).', ['rik']],

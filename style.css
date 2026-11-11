@@ -276,6 +276,7 @@ select { display: block; width: 100%; margin-top: .75rem; padding: .4rem .55rem;
 #municipality-table thead th[data-drop-side="after"] { box-shadow: inset -3px 0 #216eb3; }
 .column-help-popover { position: fixed; inset: auto; margin: 0; width: min(320px, calc(100vw - 16px)); max-height: min(60vh, 320px); overflow: auto; padding: .7rem .8rem; border: 1px solid #91abc2; border-radius: .55rem; background: #fff; color: var(--ink); box-shadow: 0 4px 18px #12243836; font-size: .82rem; line-height: 1.45; text-align: left; }
 .column-help-popover p { margin: 0 0 .5rem; }
+#column-help-developmentGroup2014 p { white-space: pre-line; }
 .column-help-sources { padding-top: .45rem; border-top: 1px solid var(--line); }
 .column-help-sources a { color: #225c92; }
 .table-scroll-hint { display: block; margin: 0; padding: .5rem .8rem; border-top: 1px solid var(--line); background: #fff; color: var(--secondary); font-size: .8rem; }
