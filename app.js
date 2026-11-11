@@ -1078,7 +1078,13 @@
         }
         if (key === 'developmentGroup2014') {
           cell.className = 'development-cell';
-          if (entry[key] === 5) cell.title = 'Devastirano; po uredbi podgrupa IV';
+          if (entry[key] === 5) {
+            const label = document.createElement('span');
+            label.textContent = developmentLabels[entry[key]];
+            label.title = 'Devastirano; po uredbi podgrupa IV';
+            cell.append(label);
+            continue;
+          }
         }
         if (key === 'voteDifference' && Number.isFinite(entry[key])) {
           cell.className = 'difference-cell';
