@@ -22,4 +22,4 @@ draw.polygon([box((80, 121))[:2], box((176, 121))[:2], box((128, 218))[:2]], fil
 draw.ellipse(box((102, 67, 154, 119)), fill="#4f9eea")
 
 image = image.resize((SIZE, SIZE), Image.Resampling.LANCZOS)
-image.save(ROOT / "favicon.ico", format="ICO", sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (256, 256)])
+image.save(ROOT / "assets/favicon.ico", format="ICO", sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (256, 256)])

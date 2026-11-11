@@ -14,7 +14,7 @@ if (originalRows.length !== 187 || originalRows[0][1] !== 'Opština ili grad')
   throw new Error('Unexpected source workbook layout');
 
 const context = {window: {}};
-vm.runInNewContext(await fs.readFile(path('socioeconomic-data.js'), 'utf8'), context);
+vm.runInNewContext(await fs.readFile(path('data/socioeconomic-data.js'), 'utf8'), context);
 const socioeconomic = context.window.socioeconomicData;
 const labels = {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V'};
 const rows = originalRows.map((row, index) => {
@@ -57,5 +57,5 @@ workbook.recalculate();
 const preview = await workbook.render({sheetName: sheet.name, range: 'A1:J8', scale: 1.5, format: 'png'});
 await fs.writeFile(path('scripts/export-preview.png'), new Uint8Array(await preview.arrayBuffer()));
 const output = await SpreadsheetFile.exportXlsx(workbook);
-await output.save(path('izborna-geografija-srbije-2026.xlsx'));
+await output.save(path('data/izborna-geografija-srbije-2026.xlsx'));
 console.log(`Wrote ${rows.length - 2} municipality rows with 2 new columns`);

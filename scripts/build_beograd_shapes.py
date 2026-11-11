@@ -10,7 +10,7 @@ from shapely.ops import unary_union
 
 
 ROOT = Path(__file__).resolve().parents[1]
-source = (ROOT / "rik-beograd-map.js").read_text(encoding="utf-8")
+source = (ROOT / "sources/rik-beograd-map.js").read_text(encoding="utf-8")
 source = source[source.index('{"width"'):source.rindex("}") + 1]
 source = re.sub(r",\s*}", "}", source.replace("\t", r"\t"))
 paths = json.loads(source)["paths"]
@@ -120,6 +120,6 @@ for code, record in paths.items():
                    "path": svg_path(geometry)})
 if any(not item["path"] for item in output):
     raise ValueError("One or more Belgrade municipality shapes are empty")
-(ROOT / "beograd-shapes.js").write_text(
+(ROOT / "data/beograd-shapes.js").write_text(
     "window.beogradShapes = " + json.dumps(output, ensure_ascii=False) + ";\n", encoding="utf-8")
 print("Wrote", len(output), "municipality shapes")

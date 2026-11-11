@@ -10,8 +10,8 @@ ROOT = Path(__file__).resolve().parent.parent
 SIZE = (1200, 630)
 MAP_BOX = (710, 40, 1150, 590)
 SOURCES = (
-    ROOT / "serbia-adm2-source.geojson",
-    ROOT / "kosovo-adm2-source.geojson",
+    ROOT / "sources/serbia-adm2-source.geojson",
+    ROOT / "sources/kosovo-adm2-source.geojson",
 )
 
 
@@ -79,4 +79,4 @@ draw.text((74, 436), "i demografskih pokazatelja", font=subtitle, fill="#4c6074"
 draw.text((74, 478), "po opštinama i gradovima", font=subtitle, fill="#4c6074")
 draw.text((74, 556), "milangr.github.io/izborna-geografija-srbije", font=ImageFont.truetype(str(regular), 19), fill="#4c6074")
 
-image.save(ROOT / "preview.png", optimize=True)
+image.save(ROOT / "assets/preview.png", optimize=True)

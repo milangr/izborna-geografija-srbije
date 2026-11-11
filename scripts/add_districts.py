@@ -48,7 +48,7 @@ def source_rows(path):
 
 
 def main(source_path):
-    data_path = Path(__file__).resolve().parents[1] / "data.js"
+    data_path = Path(__file__).resolve().parents[1] / "data/data.js"
     source = data_path.read_text(encoding="utf-8")
     prefix = source.split("window.municipalityData = ", 1)[0]
     entries = json.loads(source.split("window.municipalityData = ", 1)[1].strip().rstrip(";"))

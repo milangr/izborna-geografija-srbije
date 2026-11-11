@@ -13,7 +13,7 @@ from add_invalid_ballots import key, municipality_key
 
 
 def main(source_path):
-    destination = Path(__file__).resolve().parents[1] / "data.js"
+    destination = Path(__file__).resolve().parents[1] / "data/data.js"
     source = destination.read_text(encoding="utf-8")
     prefix, payload = source.split("window.municipalityData = ", 1)
     entries = json.loads(payload.strip().rstrip(";"))

@@ -27,7 +27,7 @@ def read_js_array(filename):
 
 
 def wages_from_rzs():
-    source = (ROOT / "rzs-wages-2025-source.html").read_text(encoding="utf-8-sig")
+    source = (ROOT / "sources/rzs-wages-2025-source.html").read_text(encoding="utf-8-sig")
     table = source.split('id="tables5"', 1)[1].split("</table>", 1)[0]
     wages = {}
     for row in re.findall(r"<tr[^>]*>(.*?)</tr>", table, flags=re.S):
@@ -56,8 +56,8 @@ def main():
     # RZS prefixes these two city totals with "Grad"; the election table does not.
     wages["Niš"] = wages["Grad Niš"]
     wages["Novi Sad"] = wages["Grad Novi Sad"]
-    names = [entry["name"] for entry in read_js_array("data.js") if entry["name"] != "Beograd"]
-    belgrade = [entry["name"] for entry in read_js_array("beograd-results.js")]
+    names = [entry["name"] for entry in read_js_array("data/data.js") if entry["name"] != "Beograd"]
+    belgrade = [entry["name"] for entry in read_js_array("data/beograd-results.js")]
     missing_groups = sorted(set(names) - groups.keys())
     unused_groups = sorted(groups.keys() - set(names) - {"Beograd"})
     if missing_groups or unused_groups:
@@ -70,7 +70,7 @@ def main():
         group = 1 if name in belgrade else groups[name]
         output[name] = {"developmentGroup2014": 5 if name in DEVASTATED else group,
                         "averageNetWage2025": wages[name]}
-    (ROOT / "socioeconomic-data.js").write_text(
+    (ROOT / "data/socioeconomic-data.js").write_text(
         "// Vlada RS: stepen razvijenosti JLS 2014; RZS: prosječna neto zarada 2025 po opštini prebivališta zaposlenih.\n"
         "window.socioeconomicData = " + json.dumps(output, ensure_ascii=False, separators=(",", ":")) + ";\n",
         encoding="utf-8")

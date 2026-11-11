@@ -12,11 +12,11 @@ from shapely.ops import transform, unary_union
 
 
 ROOT = Path(__file__).resolve().parents[1]
-rik_source = (ROOT / "rik-kosovo-map.js").read_text(encoding="utf-8")
+rik_source = (ROOT / "sources/rik-kosovo-map.js").read_text(encoding="utf-8")
 rik_source = rik_source[rik_source.index('{"width"'):rik_source.rindex("}") + 1]
 rik_source = re.sub(r",\s*}", "}", rik_source.replace("\t", r"\t"))
 rik = json.loads(rik_source)["paths"]
-geo = json.loads((ROOT / "kosovo-adm2-source.geojson").read_text(encoding="utf-8"))
+geo = json.loads((ROOT / "sources/kosovo-adm2-source.geojson").read_text(encoding="utf-8"))
 html = (ROOT / "index.html").read_text(encoding="utf-8")
 base_path = re.search(r'<path class="unit missing" d="([^"]+)"', html).group(1)
 base_values = [float(value) for value in re.findall(r"-?\d+(?:\.\d+)?", base_path)]
@@ -106,7 +106,7 @@ coverage = unary_union([affine_transform(polygon, affine) for polygon in source_
 print("RIK map coverage inside existing map:", f"{coverage.intersection(base).area / base.area:.2%}")
 print("RIK map area relative to existing map:", f"{coverage.area / base.area:.2%}")
 print("RIK map outside existing map:", f"{coverage.difference(base).area / coverage.area:.2%}")
-(ROOT / "kosovo-shapes.js").write_text(
+(ROOT / "data/kosovo-shapes.js").write_text(
     "window.kosovoShapes = " + json.dumps(output, ensure_ascii=False) + ";\n", encoding="utf-8"
 )
 print(f"Wrote {sum(item['id'] is not None for item in output)} result shapes and {sum(item['id'] is None for item in output)} unreported shapes")

@@ -34,7 +34,7 @@ if sum(OFFICIAL_AREA_KM2.values()) != 3234:
 
 
 def rzs_2025():
-    source = (ROOT / "rzs-population-2025-source.html").read_text(encoding="utf-8")
+    source = (ROOT / "sources/rzs-population-2025-source.html").read_text(encoding="utf-8")
     result = {}
     for row in re.findall(r"<tr[^>]*>(.*?)</tr>", source, re.I | re.S):
         cells = re.findall(r'<td class="table-(?:label|data)"[^>]*>(.*?)</td>', row, re.I | re.S)
@@ -74,7 +74,7 @@ def main(source_path):
     for row in source_rows(source_path):
         if row["sifra_okruga_regiona"].startswith("RS11/"):
             records[row["sifra_opstine"]].append(row)
-    shapes_source = (ROOT / "beograd-shapes.js").read_text(encoding="utf-8")
+    shapes_source = (ROOT / "data/beograd-shapes.js").read_text(encoding="utf-8")
     shapes = json.loads(shapes_source.split("window.beogradShapes = ", 1)[1].strip().rstrip(";"))
     shape_by_code = {shape["id"].split("-", 1)[1]: shape for shape in shapes}
     if len(records) != 17 or records.keys() != shape_by_code.keys():
@@ -82,8 +82,8 @@ def main(source_path):
     population = rzs_2025()
     wanted = {key(next(iter({row["opstina"] for row in rows})).removeprefix(
         "Градска општина ").split(" (")[0]) for rows in records.values()}
-    ages = census_rows(ROOT / "rzs-age-2022-source.xlsx", wanted)
-    education = census_rows(ROOT / "rzs-education-2022-source.xlsx", wanted)
+    ages = census_rows(ROOT / "sources/rzs-age-2022-source.xlsx", wanted)
+    education = census_rows(ROOT / "sources/rzs-education-2022-source.xlsx", wanted)
     entries = []
     for code, rows in sorted(records.items()):
         names = {row["opstina"] for row in rows}
@@ -118,7 +118,7 @@ def main(source_path):
             "invalidShare": 100 * sums["nevazeci_listici"] / sums["listici_u_kutiji"],
             "district": "Grad Beograd",
         })
-    existing = json.loads((ROOT / "data.js").read_text(encoding="utf-8").split(
+    existing = json.loads((ROOT / "data/data.js").read_text(encoding="utf-8").split(
         "window.municipalityData = ", 1)[1].strip().rstrip(";"))
     beograd = next(entry for entry in existing if entry["name"] == "Beograd")
     for key_name in ("validVotes", "listVotes", "population", "stations", "registeredVoters",
@@ -133,7 +133,7 @@ def main(source_path):
     if (abs(aggregate_youth - beograd["youthShare"]) > 1e-8 or
             abs(aggregate_education - beograd["higherEducationShare"]) > 1e-8):
         raise ValueError("Belgrade census shares differ from the existing city aggregate")
-    (ROOT / "beograd-results.js").write_text(
+    (ROOT / "data/beograd-results.js").write_text(
         "window.beogradResults = " + json.dumps(entries, indent=2, ensure_ascii=False) + ";\n",
         encoding="utf-8")
     print(f"Wrote {len(entries)} municipalities; votes={sum(x['listVotes'] for x in entries):,}; "

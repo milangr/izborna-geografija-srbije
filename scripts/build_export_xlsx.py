@@ -8,7 +8,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "izborna-geografija-srbije-2026.xlsx"
+OUTPUT = ROOT / "data/izborna-geografija-srbije-2026.xlsx"
 NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
 REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 PKG_REL = "http://schemas.openxmlformats.org/package/2006/relationships"
@@ -166,12 +166,12 @@ def make_sheet(rows):
 
 
 def main():
-    data = [entry for entry in read_js_array("data.js") if entry["name"] != "Beograd"]
-    data += read_js_array("beograd-results.js")
-    kosovo = read_js_array("kosovo-results.js")
+    data = [entry for entry in read_js_array("data/data.js") if entry["name"] != "Beograd"]
+    data += read_js_array("data/beograd-results.js")
+    kosovo = read_js_array("data/kosovo-results.js")
     data += [entry for entry in kosovo if entry.get("mapped")]
     data += [entry for entry in kosovo if not entry.get("mapped")]
-    data += read_js_array("special-results.js")
+    data += read_js_array("data/special-results.js")
     data.sort(key=lambda entry: entry["name"].casefold())
     for entry in data:
         valid = entry.get("validVotes")

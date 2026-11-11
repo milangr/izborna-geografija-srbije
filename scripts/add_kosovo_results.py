@@ -67,7 +67,7 @@ def main(source_path):
             "mapped": True,
         })
 
-    destination = ROOT / "kosovo-results.js"
+    destination = ROOT / "data/kosovo-results.js"
     destination.write_text("window.kosovoResults = " +
                            json.dumps(result, indent=2, ensure_ascii=False) + ";\n", encoding="utf-8")
     print(f"Added {len(result)} Kosovo municipality rows, {sum(item['stations'] for item in result)} polling stations")

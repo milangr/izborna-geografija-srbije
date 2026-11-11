@@ -5,12 +5,12 @@ import json
 from build_export_xlsx import COLUMNS, REGIONS, read_js_array
 
 
-data = [entry for entry in read_js_array("data.js") if entry["name"] != "Beograd"]
-data += read_js_array("beograd-results.js")
-kosovo = read_js_array("kosovo-results.js")
+data = [entry for entry in read_js_array("data/data.js") if entry["name"] != "Beograd"]
+data += read_js_array("data/beograd-results.js")
+kosovo = read_js_array("data/kosovo-results.js")
 data += [entry for entry in kosovo if entry.get("mapped")]
 data += [entry for entry in kosovo if not entry.get("mapped")]
-data += read_js_array("special-results.js")
+data += read_js_array("data/special-results.js")
 data.sort(key=lambda entry: entry["name"].casefold())
 
 for entry in data:

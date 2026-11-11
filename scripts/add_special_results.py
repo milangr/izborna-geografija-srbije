@@ -64,7 +64,7 @@ def main(source_path):
             "special": True,
         })
 
-    destination = Path(__file__).resolve().parents[1] / "special-results.js"
+    destination = Path(__file__).resolve().parents[1] / "data/special-results.js"
     destination.write_text("window.specialResults = " +
                            json.dumps(result, indent=2, ensure_ascii=False) + ";\n", encoding="utf-8")
     print("Added: " + ", ".join(f"{item['name']} ({item['stations']})" for item in result))

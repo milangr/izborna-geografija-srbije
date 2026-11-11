@@ -4,7 +4,7 @@
 
 **[Otvori interaktivni prikaz](https://milangr.github.io/izborna-geografija-srbije/)**
 
-![Naslovna slika projekta s mapom opština Srbije](preview.png)
+![Naslovna slika projekta s mapom opština Srbije](assets/preview.png)
 
 ## Šta se može istražiti
 
@@ -38,8 +38,9 @@ Dodatna objašnjenja pojedinačnih pokazatelja i izvora nalaze se u odjeljku **I
 
 Stranica je statična: otvori `index.html` u pregledniku ili posluži korijen repozitorija lokalnim HTTP serverom, na primjer `python -m http.server 8000`. Nije potreban korak izgradnje za prikaz stranice.
 
-- `index.html`, `style.css` i `app.js` čine korisnički prikaz.
-- `data.js`, `beograd-results.js`, `kosovo-results.js`, `special-results.js` i `socioeconomic-data.js` sadrže podatke koje stranica učitava.
+- `index.html` je ulazna stranica, a `assets/` sadrži stilove, aplikacijski kod, ikonu i naslovnu sliku.
+- `data/` sadrži podatke i geometrije koje stranica učitava te XLSX za preuzimanje.
+- `sources/` čuva izvorne RIK, RZS i geografske datoteke korištene u pripremi.
 - `scripts/` sadrži postupke za pripremu podataka, geometrija i XLSX datoteke.
 
 Za ponovno generisanje XLSX datoteke nakon izmjene izvora pokreni `python scripts/build_socioeconomic_data.py`, a zatim `node scripts/build_export_xlsx.mjs` (potreban je `@oai/artifact-tool`).

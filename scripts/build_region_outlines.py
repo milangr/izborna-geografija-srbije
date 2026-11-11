@@ -10,7 +10,7 @@ from shapely.ops import unary_union
 
 
 ROOT = Path(__file__).resolve().parents[1]
-source = (ROOT / "data.js").read_text(encoding="utf-8")
+source = (ROOT / "data/data.js").read_text(encoding="utf-8")
 entries = json.loads(source.split("window.municipalityData = ", 1)[1].strip().rstrip(";"))
 html = (ROOT / "index.html").read_text(encoding="utf-8")
 paths = dict(re.findall(r'<path id="(rs-municipality-\d+)" class="unit" d="([^"]+)"', html))
@@ -48,6 +48,6 @@ for code, polygons in regional.items():
     result[code] = svg_path(union)
     print(f"{code}: {len(polygons)} shapes, {len(list(rings(union)))} boundary rings")
 
-(ROOT / "region-outlines.js").write_text(
+(ROOT / "data/region-outlines.js").write_text(
     "window.regionOutlines = " + json.dumps(result, ensure_ascii=False) + ";\n", encoding="utf-8"
 )
