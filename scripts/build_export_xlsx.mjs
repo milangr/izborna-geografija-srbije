@@ -44,7 +44,7 @@ sheet.getRange('J:J').format.columnWidth = 38;
 sheet.getRange('W:W').format.columnWidth = 32;
 sheet.getRange('A2:A186').format.numberFormat = '#,##0';
 sheet.getRange('W2:W186').format.numberFormat = '#,##0';
-const percentHeaders = ['Udio studentske liste (%)', 'Udio SNS liste (%)', 'Nevažeći listići (%)',
+const percentHeaders = ['Udio Lista3 (%)', 'Udio SNS (%)', 'Nevažeći listići (%)',
   'Izlaznost (%)', 'Mladi 15–29 (2022) (%)', 'Uzrast 65+ (2025) (%)',
   'Više ili visoko obrazovanje (2022) (%)'];
 for (let c = 6; c <= 22; c++) {

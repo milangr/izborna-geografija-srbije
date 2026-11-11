@@ -24,7 +24,7 @@
   <script src="./data/region-outlines.js" defer></script>
   <script src="./data/special-results.js?v=20261110-2" defer></script>
   <script src="./data/socioeconomic-data.js?v=20261111-1" defer></script>
-  <script src="./assets/app.js?v=20261111-37" defer></script>
+  <script src="./assets/app.js?v=20261111-38" defer></script>
 </head>
 <body>
   <main class="shell">
@@ -309,7 +309,7 @@
           <button id="clear-table-filters" type="button">Očisti filtere</button>
         </div>
         <div class="table-selection-actions">
-          <a class="table-export" href="./data/izborna-geografija-srbije-2026.xlsx?v=20261111-2" download="izborna-geografija-srbije-2026.xlsx" title="Preuzmi svih 185 redova, bez obzira na filtere">Preuzmi XLSX · svi redovi</a>
+          <a class="table-export" href="./data/izborna-geografija-srbije-2026.xlsx?v=20261111-3" download="izborna-geografija-srbije-2026.xlsx" title="Preuzmi svih 185 redova, bez obzira na filtere">Preuzmi XLSX · svi redovi</a>
           <a id="jump-to-visuals" href="#map-heading" hidden>Prikaži mapu i XY ↑</a>
         </div>
       </div>
@@ -332,7 +332,7 @@
           <section aria-labelledby="notes-sources-heading">
             <h3 id="notes-sources-heading">Izvori podataka</h3>
             <dl class="notes-sources">
-              <div><dt>Izborni rezultati · RIK</dt><dd>Glasovi za Lista3 i koalicionu listu SNS (broj 1), važeći i nevažeći listići, izašli i upisani birači, biračka mjesta, regija i okrug. <a href="https://www.rik.parlament.gov.rs/542645/rezultati/">Konačni rezultati i mapa</a> · <a href="https://www.rik.parlament.gov.rs/export-results/680072/2">Podaci po biračkim mjestima (CSV)</a></dd></div>
+              <div><dt>Izborni rezultati · RIK</dt><dd>Glasovi za Lista3 i SNS (koaliciona lista broj 1), važeći i nevažeći listići, izašli i upisani birači, biračka mjesta, regija i okrug. <a href="https://www.rik.parlament.gov.rs/542645/rezultati/">Konačni rezultati i mapa</a> · <a href="https://www.rik.parlament.gov.rs/export-results/680072/2">Podaci po biračkim mjestima (CSV)</a></dd></div>
               <div><dt>Stanovništvo · RZS</dt><dd>Godišnji prosjek broja stanovnika za 2025. i udio osoba 65+. <a href="https://publikacije.stat.gov.rs/G2026/HtmlL/G20261178.html">Procjene stanovništva, tabele 4 i 6</a></dd></div>
               <div><dt>Razvijenost · Vlada RS</dt><dd>Zvanične grupe razvijenosti jedinica lokalne samouprave prema <a href="https://ras.gov.rs/uploads/2020/05/uredba-o-utvrdivanju-jedinstvene-liste-razvijenosti-regiona-i-jedinica.pdf">uredbi za 2014. godinu</a>.</dd></div>
               <div><dt>Prosječna neto zarada · RZS</dt><dd>Prosjek za januar–decembar 2025. prema opštini prebivališta zaposlenih, u dinarima. <a href="https://publikacije.stat.gov.rs/G2026/HtmlL/G20261050.html">Zarade, tabela 4</a>.</dd></div>
@@ -344,7 +344,7 @@
           <section aria-labelledby="notes-method-heading">
             <h3 id="notes-method-heading">Kako se računaju pokazatelji</h3>
             <ul class="notes-list">
-              <li><strong>Izbori:</strong> udjeli glasova za Lista3 i koalicionu listu SNS računaju se od važećih glasova; razlika je broj glasova za Lista3 minus broj glasova za koalicionu listu SNS. Udio nevažećih listića računa se od listića pronađenih u kutijama, a izlaznost od upisanih birača.</li>
+              <li><strong>Izbori:</strong> udjeli glasova za Lista3 i SNS računaju se od važećih glasova; razlika je broj glasova za Lista3 minus broj glasova za SNS. Udio nevažećih listića računa se od listića pronađenih u kutijama, a izlaznost od upisanih birača.</li>
               <li><strong>Demografija:</strong> gustina je godišnji prosjek stanovnika 2025. podijeljen površinom. Udio mladih sabira starosne grupe 15–19, 20–24 i 25–29; udio 65+ odnosi se na stanovništvo 2025, a udio višeg ili visokog obrazovanja na stanovnike od 15 godina naviše iz Popisa 2022.</li>
               <li><strong>Razvijenost:</strong> I je iznad republičkog prosjeka, II 80–100%, III 60–80%, IV ispod 60%. Devastirane opštine (ispod 50%) prikazane su zasebno kao V, ali po uredbi pripadaju grupi IV. Podaci su iz 2014, a ne procjena za 2025. ili 2026.</li>
               <li><strong>Zbirni prikazi:</strong> bez odabrane opštine polja iznad mape i XY grafikona sažimaju uključene regije. Brojevi se sabiraju; izborni udjeli, izlaznost i gustina računaju se iz zbirnih vrijednosti, udio 65+ ponderiše se stanovništvom, a udjeli mladih i obrazovanja su prosti prosjeci jedinica s dostupnim podacima.</li>
