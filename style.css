@@ -391,6 +391,7 @@ a { color: #225c92; }
   .dashboard { --plot-height: 265px; }
 }
 @media (max-width: 540px) {
+  .table-scroll-hint { display: flex; flex-direction: column; gap: .35rem; line-height: 1.4; }
   .visual-zoom button { min-width: 40px; min-height: 40px; }
   .notes-sources { grid-template-columns: minmax(0, 1fr); }
   .shell { padding: 1.25rem .65rem 1rem; }
