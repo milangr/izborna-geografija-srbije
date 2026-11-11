@@ -184,6 +184,15 @@
     const {label, unit} = metrics[key];
     return unit && !label.endsWith('(' + unit + ')') ? label + ' (' + unit + ')' : label;
   };
+  const mapLegendLabel = key => {
+    const label = metricLabel(key);
+    const breaks = [...label.matchAll(/ /g)].map(match => match.index);
+    const split = breaks.reduce((best, index) => {
+      const longest = Math.max(index, label.length - index - 1);
+      return !best || longest < best.longest ? {index, longest} : best;
+    }, null);
+    return split ? label.slice(0, split.index) + '\n' + label.slice(split.index + 1) : label;
+  };
   function showPlotValues(readout, entry, controls, regionSummary = false) {
     const scope = readout.closest('.panel').querySelector('.readout-scope');
     const scopeText = !entry ? 'Nema podataka' : regionSummary
@@ -451,8 +460,7 @@
     mapLegend.classList.toggle('is-matrix', !colorMatrix.hidden);
     mapLegend.classList.toggle('is-development', color === 'developmentGroup2014');
     if (color !== 'region') colorCaption.textContent = 'Boja · ' + metricLabel(color);
-    textureCaption.textContent = texture === 'averageNetWage2025'
-      ? 'Prosj. neto zarada\n(2025) (RSD)' : metricLabel(texture);
+    textureCaption.textContent = mapLegendLabel(texture);
     const headings = colorMatrix.querySelectorAll('thead th');
     headings[0].textContent = '';
     const colorRanges = !colorMatrix.hidden ? mapRangeLabels(color) : [];
