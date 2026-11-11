@@ -18,6 +18,7 @@
       ? entry.listVotes - entry.snsVotes : null;
   }
   const maxVoteDifference = Math.max(1, ...tableData.map(entry => Math.abs(entry.voteDifference || 0)));
+  const maxWage = Math.max(1, ...tableData.map(entry => entry.averageNetWage2025 || 0));
   const byId = new Map(tableData.map(entry => [entry.id, entry]));
   const number = new Intl.NumberFormat('sr-Latn-RS', {maximumFractionDigits: 1});
   const wholeNumber = new Intl.NumberFormat('sr-Latn-RS', {maximumFractionDigits: 0});
@@ -128,11 +129,15 @@
   const densityText = value => number.format(value) + ' stan./km²';
   const compact = new Intl.NumberFormat('sr-Latn-RS', {notation: 'compact', maximumFractionDigits: 1});
   const metrics = {
-    votes: {label: 'Udio studentske liste (%)', unit: '%', breaks: [35, 50], format: percent},
-    listVotes: {label: 'Glasovi studentske liste', breaks: [5000, 20000]},
+    developmentGroup2014: {label: 'Razvijenost (2014)', categorical: true,
+      format: value => developmentLabels[value]},
+    averageNetWage2025: {label: 'Prosj. neto zarada (2025)', unit: 'RSD',
+      breaks: [90000, 110000]},
+    votes: {label: 'Udio liste 3 (%)', unit: '%', breaks: [35, 50], format: percent},
+    listVotes: {label: 'Glasovi liste 3', breaks: [5000, 20000]},
     snsShare: {label: 'Udio SNS liste (%)', unit: '%', breaks: [35, 50], format: percent},
     snsVotes: {label: 'Glasovi SNS liste', breaks: [5000, 20000]},
-    voteDifference: {label: 'Razlika glasova (studentska − SNS)', breaks: [0, 5000], format: signedWholeNumber.format},
+    voteDifference: {label: 'Razlika glasova (lista 3 − SNS)', breaks: [0, 5000], format: signedWholeNumber.format},
     validVotes: {label: 'Važeći glasovi', breaks: [10000, 40000]},
     invalidShare: {label: 'Nevažeći listići (%)', unit: '%', breaks: [1.2, 1.6], format: percent},
     turnout: {label: 'Izlaznost (%)', unit: '%', breaks: [50, 65], format: percent},
@@ -160,6 +165,10 @@
     const entries = data.filter(entry => isVisible(entry.id));
     const summary = summarizeSelectedRegions();
     for (const key of Object.keys(metrics)) {
+      if (metrics[key].categorical) {
+        metricAverages[key] = NaN;
+        continue;
+      }
       if (key in aggregateMetricLabels) {
         metricAverages[key] = summary?.[key] ?? NaN;
       } else {
@@ -191,7 +200,8 @@
       const key = get(id).value;
       const result = get(id + '-value');
       const value = document.createElement('strong');
-      value.textContent = entry ? (key === 'region' ? entry.summaryLabel || regions[entry.region] : metricValue(entry, key)) : '—';
+      value.textContent = entry ? (key === 'region' ? entry.summaryLabel || regions[entry.region]
+        : regionSummary && metrics[key].categorical ? 'po grupama' : metricValue(entry, key)) : '—';
       result.replaceChildren(value);
       if (!regionSummary && key !== 'region') appendBenchmark(result, key, entry);
       result.title = result.textContent;
@@ -199,6 +209,7 @@
   }
 
   function appendBenchmark(value, key, entry) {
+    if (metrics[key].categorical) return;
     const average = metricAverages[key];
     if (!Number.isFinite(average)) return;
     const track = document.createElement('span');
@@ -234,10 +245,34 @@
     const [low, high] = metrics[key].breaks.map(format);
     return ['< ' + low, '≥ ' + low + ' i < ' + high, '≥ ' + high];
   }
+  const mapBreaks = {};
+  for (const key of Object.keys(metrics)) {
+    if (metrics[key].categorical) continue;
+    const values = data.map(entry => entry[key]).filter(Number.isFinite).sort((a, b) => a - b);
+    if (!values.length) continue;
+    const quantile = (items, fraction) => items[Math.min(items.length - 1, Math.ceil(items.length * fraction) - 1)];
+    if (key === 'voteDifference') {
+      mapBreaks[key] = metrics[key].breaks;
+    } else {
+      const centralSpread = quantile(values, .8) - quantile(values, .2);
+      const step = 10 ** Math.floor(Math.log10(centralSpread / 4 || 1));
+      mapBreaks[key] = [1 / 3, 2 / 3].map(fraction => Math.round(quantile(values, fraction) / step) * step);
+      if (mapBreaks[key][1] <= mapBreaks[key][0]) mapBreaks[key][1] = mapBreaks[key][0] + step;
+    }
+  }
+  const mapColorClass = (value, key) => mapBreaks[key].reduce((level, boundary) => level + (value >= boundary), 0);
+  const mapRangeLabels = key => {
+    const format = key === 'voteDifference' ? signedWholeNumber.format
+      : metrics[key].unit === '%' ? percent : compact.format;
+    const breaks = mapBreaks[key].map(format);
+    return ['< ' + breaks[0], '≥ ' + breaks[0] + ' i < ' + breaks[1], '≥ ' + breaks[1]];
+  };
+  const mapDevelopmentGroup = code => code <= 2 ? 1 : code <= 4 ? 3 : 5;
   function metricSelect(id, defaultValue, includeRegions = false) {
     const select = get(id);
     if (includeRegions) select.add(new Option('Statistička regija', 'region'));
     for (const key of Object.keys(metrics)) {
+      if (metrics[key].categorical && (id === 'map-texture' || id === 'scatter-size')) continue;
       if (id === 'scatter-size' && key === 'voteDifference') continue;
       select.add(new Option(metricLabel(key), key));
     }
@@ -259,12 +294,82 @@
     }, {passive: false});
     return select;
   }
-  const mapColor = metricSelect('map-color', 'voteDifference', true);
+  const mapColor = metricSelect('map-color', 'voteDifference');
   const mapTexture = metricSelect('map-texture', 'density');
   const mapLegend = document.querySelector('.map-panel .legend');
   const colorCaption = mapLegend.querySelector('caption');
   const colorMatrix = mapLegend.querySelector('table');
   const regionLegend = mapLegend.querySelector('.map-region-legend');
+  colorMatrix.classList.add('map-numeric-legend');
+  const numericHead = colorMatrix.querySelector('thead tr');
+  numericHead.replaceChildren(document.createElement('th'));
+  for (let level = 0; level < 3; level++) {
+    const heading = document.createElement('th');
+    heading.scope = 'col';
+    numericHead.append(heading);
+  }
+  const numericBody = colorMatrix.querySelector('tbody');
+  numericBody.replaceChildren();
+  for (let density = 2; density >= 0; density--) {
+    const row = document.createElement('tr');
+    const heading = document.createElement('th');
+    heading.scope = 'row';
+    heading.className = 'row-head';
+    row.append(heading);
+    for (let level = 0; level < 3; level++) {
+      const cell = document.createElement('td');
+      const swatch = document.createElement('span');
+      swatch.className = 'map-color-swatch v' + level;
+      swatch.style.setProperty('--dot-spacing', [11, 7, 4][density] + 'px');
+      swatch.setAttribute('aria-hidden', 'true');
+      cell.append(swatch);
+      row.append(cell);
+    }
+    numericBody.append(row);
+  }
+  const developmentLegend = document.createElement('table');
+  developmentLegend.className = 'map-development-legend';
+  developmentLegend.setAttribute('aria-label', 'Boja razvijenosti po gustini tačaka');
+  mapLegend.append(developmentLegend);
+  const developmentTitle = document.createElement('caption');
+  developmentTitle.textContent = 'Boja · Razvijenost (2014)';
+  developmentLegend.append(developmentTitle);
+  const developmentHead = document.createElement('thead');
+  const developmentHeadRow = document.createElement('tr');
+  developmentHeadRow.append(document.createElement('th'));
+  const developmentColumns = [5, 3, 1];
+  for (const [index] of developmentColumns.entries()) {
+    const heading = document.createElement('th');
+    heading.scope = 'col';
+    heading.textContent = ['V*', 'III · IV', 'I · II'][index];
+    developmentHeadRow.append(heading);
+  }
+  developmentHead.append(developmentHeadRow);
+  developmentLegend.append(developmentHead);
+  const developmentBody = document.createElement('tbody');
+  for (let density = 2; density >= 0; density--) {
+    const row = document.createElement('tr');
+    const rowHeading = document.createElement('th');
+    rowHeading.scope = 'row';
+    rowHeading.className = 'row-head';
+    row.append(rowHeading);
+    for (const code of developmentColumns) {
+      const cell = document.createElement('td');
+      const swatch = document.createElement('span');
+      swatch.className = 'map-development-swatch';
+      swatch.dataset.development = code;
+      swatch.style.setProperty('--dot-spacing', [11, 7, 4][density] + 'px');
+      swatch.setAttribute('aria-hidden', 'true');
+      cell.append(swatch);
+      row.append(cell);
+    }
+    developmentBody.append(row);
+  }
+  developmentLegend.append(developmentBody);
+  const developmentNote = document.createElement('p');
+  developmentNote.className = 'map-development-note';
+  developmentNote.textContent = 'V* = zvanična podgrupa IV · devastirano';
+  mapLegend.append(developmentNote);
   const textureCaption = document.createElement('p');
   textureCaption.className = 'map-legend-label';
   mapLegend.prepend(textureCaption);
@@ -313,12 +418,14 @@
     const texture = mapTexture.value;
     for (const entry of data) {
       const unit = get(entry.id);
-      unit.classList.remove('v0', 'v1', 'v2');
+      unit.classList.remove('v0', 'v1', 'v2', 'v3', 'v4', 'is-diverging', ...Object.keys(developmentLabels).map(code => 'development-' + code));
       unit.dataset.region = entry.region;
       unit.classList.toggle('is-region-color', color === 'region');
       unit.classList.toggle('missing', color !== 'region' && !Number.isFinite(entry[color]));
-      if (color !== 'region' && Number.isFinite(entry[color])) {
-        unit.classList.add('v' + metricClass(entry[color], metrics[color].breaks));
+      if (color === 'developmentGroup2014' && Number.isFinite(entry[color])) {
+        unit.classList.add('development-' + mapDevelopmentGroup(entry[color]));
+      } else if (color !== 'region' && Number.isFinite(entry[color])) {
+        unit.classList.add('v' + mapColorClass(entry[color], color));
       }
       const densityClass = Number.isFinite(entry[texture])
         ? metricClass(entry[texture], metrics[texture].breaks) : null;
@@ -327,29 +434,28 @@
     }
     for (const entry of mappedSpecialResults) {
       const circle = specialMapButtons.get(entry.id).querySelector('.map-special-circle');
-      const colorClass = color !== 'region' && Number.isFinite(entry[color])
-        ? 'v' + metricClass(entry[color], metrics[color].breaks) : '';
+      const colorClass = color === 'developmentGroup2014' && Number.isFinite(entry[color])
+        ? 'development-' + mapDevelopmentGroup(entry[color]) : color !== 'region' && Number.isFinite(entry[color])
+        ? 'v' + mapColorClass(entry[color], color) : '';
       const textureClass = Number.isFinite(entry[texture])
         ? metricClass(entry[texture], metrics[texture].breaks) : null;
       circle.className = 'map-special-circle' + (color === 'region' ? ' is-region-color' : '')
-        + (colorClass ? ' ' + colorClass : '') + (textureClass == null ? ' no-texture' : '');
+        + (colorClass ? ' ' + colorClass : '')
+        + (textureClass == null ? ' no-texture' : '');
       if (textureClass != null) circle.style.setProperty('--dot-spacing', [11, 7, 4][textureClass] + 'px');
     }
-    colorMatrix.hidden = color === 'region';
+    colorMatrix.hidden = color === 'region' || color === 'developmentGroup2014';
     regionLegend.hidden = color !== 'region';
-    mapLegend.classList.toggle('is-matrix', color !== 'region');
+    developmentLegend.hidden = color !== 'developmentGroup2014';
+    developmentNote.hidden = color !== 'developmentGroup2014';
+    mapLegend.classList.toggle('is-matrix', !colorMatrix.hidden);
+    mapLegend.classList.toggle('is-development', color === 'developmentGroup2014');
     if (color !== 'region') colorCaption.textContent = 'Boja · ' + metricLabel(color);
     textureCaption.textContent = metricLabel(texture);
-    const headings = mapLegend.querySelectorAll('thead th');
+    const headings = colorMatrix.querySelectorAll('thead th');
     headings[0].textContent = '';
-    const colorRanges = color !== 'region' ? rangeLabels(color) : [];
+    const colorRanges = !colorMatrix.hidden ? mapRangeLabels(color) : [];
     colorRanges.forEach((label, index) => {
-      headings[index + 1].textContent = label;
-      headings[index + 1].title = metricLabel(color) + ': ' + label;
-    });
-    const rows = mapLegend.querySelectorAll('tbody th');
-    const textureRanges = rangeLabels(texture).reverse();
-    textureRanges.forEach((label, index) => {
       const bounds = label.split(' i ');
       if (bounds.length === 2) {
         const first = document.createElement('span');
@@ -358,12 +464,32 @@
         const second = document.createElement('span');
         second.className = 'range-line';
         second.textContent = 'i ' + bounds[1];
-        rows[index].replaceChildren(first, second);
-      } else rows[index].textContent = label;
-      rows[index].title = metricLabel(texture) + ': ' + label;
+        headings[index + 1].replaceChildren(first, second);
+      } else headings[index + 1].textContent = label;
+      headings[index + 1].title = metricLabel(color) + ': ' + label;
     });
-    if (color !== 'region') {
-      mapLegend.querySelectorAll('tbody tr').forEach((row, rowIndex) => {
+    const textureRanges = rangeLabels(texture).reverse();
+    textureRanges.forEach((label, index) => {
+      const bounds = label.split(' i ');
+      for (const table of [colorMatrix, developmentLegend]) {
+        const row = table.querySelectorAll('tbody th')[index];
+        if (bounds.length === 2) {
+          const first = document.createElement('span');
+          first.className = 'range-line';
+          first.textContent = bounds[0];
+          const second = document.createElement('span');
+          second.className = 'range-line';
+          second.textContent = 'i ' + bounds[1];
+          row.replaceChildren(first, second);
+        } else row.textContent = label;
+        row.title = metricLabel(texture) + ': ' + label;
+      }
+      developmentLegend.querySelectorAll('tbody tr')[index].querySelectorAll('td').forEach((cell, columnIndex) => {
+        cell.setAttribute('aria-label', 'Razvijenost ' + developmentHeadRow.children[columnIndex + 1].textContent + '; ' + metricLabel(texture) + ': ' + label);
+      });
+    });
+    if (!colorMatrix.hidden) {
+      colorMatrix.querySelectorAll('tbody tr').forEach((row, rowIndex) => {
         row.querySelectorAll('td').forEach((cell, columnIndex) => {
           const description = 'Boja opštine · ' + metricLabel(color) + ': ' + colorRanges[columnIndex]
             + '\nGustina tačaka · ' + metricLabel(texture) + ': ' + textureRanges[rowIndex];
@@ -377,6 +503,27 @@
     updateMapReadout(selectedSpecial || byId.get(selected?.id));
   }
 
+  function updateLegendSelection(entry) {
+    for (const item of mapLegend.querySelectorAll('.is-selected')) {
+      item.classList.remove('is-selected');
+    }
+    if (!entry) return;
+    const color = mapColor.value;
+    if (color === 'region') {
+      regionLegend.querySelector('[data-region="' + entry.region + '"]')?.classList.add('is-selected');
+      return;
+    }
+    const colorValue = entry[color];
+    const textureValue = entry[mapTexture.value];
+    if (!Number.isFinite(colorValue) || !Number.isFinite(textureValue)) return;
+    const table = color === 'developmentGroup2014' ? developmentLegend : colorMatrix;
+    const column = color === 'developmentGroup2014'
+      ? developmentColumns.indexOf(mapDevelopmentGroup(colorValue))
+      : mapColorClass(colorValue, color);
+    const row = 2 - metricClass(textureValue, metrics[mapTexture.value].breaks);
+    table.querySelectorAll('tbody tr')[row]?.querySelectorAll('td')[column]?.classList.add('is-selected');
+  }
+
   function updateMapReadout(entry) {
     showMapValues(entry);
   }
@@ -384,6 +531,7 @@
   function showMapValues(entry) {
     const summary = !entry ? summarizeSelectedRegions() : null;
     showPlotValues(mapReadout, entry || summary, ['map-color', 'map-texture'], Boolean(summary));
+    updateLegendSelection(entry);
   }
   function summarizeSelectedRegions() {
     const entries = tableData.filter(entry => isVisible(entry.id));
@@ -420,6 +568,7 @@
       age65PlusShare: populationWeighted('age65PlusShare'),
       youthShare: municipalAverage('youthShare'),
       higherEducationShare: municipalAverage('higherEducationShare'),
+      averageNetWage2025: municipalAverage('averageNetWage2025'),
     };
   }
   mapColor.addEventListener('change', updateMapMetrics);
@@ -432,15 +581,15 @@
     format: key === 'voteDifference' ? signedWholeNumber.format
       : metric.unit === '%' ? percent
       : metric.unit === 'stan./km²' || metric.unit === 'km²' ? number.format : wholeNumber.format,
-  }));
+  })).filter(column => !['developmentGroup2014', 'averageNetWage2025'].includes(column.key));
   const columns = [
     {key: 'name', label: 'Opština ili grad'},
     {key: 'region', label: 'Statistička regija', format: code => shortRegions[code] || tableRegions[code]},
     {key: 'district', label: 'Okrug', format: value => value.replace(/ okrug$/, '')},
     {key: 'developmentGroup2014', label: 'Razvijenost (2014)', format: value => developmentLabels[value]},
+    {key: 'averageNetWage2025', label: 'Prosj. neto zarada (2025)', format: wholeNumber.format},
     metricColumns.find(column => column.key === 'voteDifference'),
     ...metricColumns.filter(column => column.key !== 'voteDifference'),
-    {key: 'averageNetWage2025', label: 'Prosj. neto zarada (2025)', format: wholeNumber.format},
   ];
   const sourceLinks = {
     rik: ['RIK · konačni rezultati', 'https://www.rik.parlament.gov.rs/542645/rezultati/'],
@@ -458,9 +607,9 @@
     name: ['Naziv opštine ili grada za koji su prikazani rezultati. Beograd je razložen na 17 gradskih opština.', ['rik']],
     region: ['Statistička regija kojoj pripada jedinica; „Ostalo” označava glasanje bez opštinske geometrije.', ['rik']],
     district: ['Upravni okrug opštine ili grada. Za Inostranstvo i Kaznene zavode prikazan je naziv posebne kategorije.', ['rik']],
-    developmentGroup2014: ['Zvanična grupa razvijenosti JLS iz 2014.\nI — iznad prosjeka\nII — 80–100% prosjeka\nIII — 60–80% prosjeka\nIV — ispod 60% prosjeka\nIV · devastirano — ispod 50% prosjeka\n\nSvih 17 beogradskih opština ima grupu Grada Beograda.', ['development']],
+    developmentGroup2014: ['Zvanična grupa razvijenosti JLS iz 2014.\nNapomena: Ovo je posljednja dostupna zvanična klasifikacija.\n\nI — iznad prosjeka\nII — 80–100% prosjeka\nIII — 60–80% prosjeka\nIV — ispod 60% prosjeka\nIV · devastirano — ispod 50% prosjeka\n\nSvih 17 beogradskih opština ima grupu Grada Beograda.', ['development']],
     voteDifference: ['Glasovi studentske liste minus glasovi SNS liste. Pozitivna traka ide udesno, negativna ulijevo.', ['rik']],
-    votes: ['Udio glasova studentske liste (lista 3) među važećim glasovima.', ['rik']],
+    votes: ['Udio glasova studentske liste (lista 3) među važećim glasovima. Traka prikazuje udio na skali od 0 do 100%.', ['rik']],
     listVotes: ['Broj glasova studentske liste (lista 3).', ['rik']],
     snsShare: ['Udio glasova liste koalicije SNS (lista 1) među važećim glasovima.', ['rik']],
     snsVotes: ['Broj glasova liste koalicije SNS (lista 1).', ['rik']],
@@ -476,7 +625,7 @@
     youthShare: ['Udio stanovnika od 15 do 29 godina prema Popisu 2022; zbir grupa 15–19, 20–24 i 25–29.', ['ages']],
     age65PlusShare: ['Udio stanovnika od 65 godina naviše u procjeni stanovništva za 2025.', ['population']],
     higherEducationShare: ['Udio stanovnika od 15 godina naviše s višim ili visokim obrazovanjem prema Popisu 2022.', ['education', 'educationShare']],
-    averageNetWage2025: ['Prosječna mjesečna neto zarada za januar–decembar 2025. prema opštini prebivališta zaposlenih, u dinarima.', ['wages']],
+    averageNetWage2025: ['Prosječna mjesečna neto zarada za januar–decembar 2025. prema opštini prebivališta zaposlenih, u dinarima. Traka je srazmjerna najvećoj vrijednosti u tabeli.', ['wages']],
   };
   const table = get('municipality-table');
   const tableBody = table.tBodies[0];
@@ -570,19 +719,54 @@
   search.type = 'search';
   search.placeholder = 'Pretraži po nazivu';
   search.setAttribute('aria-label', 'Naziv opštine ili grada');
-  const regionFilter = document.createElement('select');
-  regionFilter.id = 'table-region';
-  regionFilter.setAttribute('aria-label', 'Regija');
-  regionFilter.add(new Option('Sve regije', ''));
-  const districtFilter = document.createElement('select');
-  districtFilter.id = 'table-district';
-  districtFilter.setAttribute('aria-label', 'Okrug');
-  districtFilter.add(new Option('Svi okruzi', ''));
-  const developmentFilter = document.createElement('select');
-  developmentFilter.setAttribute('aria-label', 'Stepen razvijenosti (2014)');
-  developmentFilter.add(new Option('Sve grupe', ''));
-  for (const [value, label] of Object.entries(developmentLabels))
-    developmentFilter.add(new Option(label, value));
+  const createChoiceFilter = (id, label, options) => {
+    const selected = new Set();
+    const element = document.createElement('div');
+    element.id = id;
+    element.className = 'choice-filter';
+    element.setAttribute('role', 'group');
+    element.setAttribute('aria-label', label);
+    const status = document.createElement('div');
+    status.className = 'choice-filter-status';
+    const clearButton = document.createElement('button');
+    clearButton.type = 'button';
+    clearButton.textContent = 'Prikaži sve';
+    const count = document.createElement('span');
+    status.append(count, clearButton);
+    const list = document.createElement('div');
+    list.className = 'choice-filter-list';
+    const inputs = new Map();
+    for (const [value, text] of options) {
+      const option = document.createElement('label');
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.value = value;
+      option.append(input, document.createTextNode(text));
+      list.append(option);
+      inputs.set(String(value), input);
+      input.addEventListener('input', () => {
+        if (input.checked) selected.add(input.value);
+        else selected.delete(input.value);
+        update();
+      });
+    }
+    const update = () => {
+      for (const [value, input] of inputs) input.checked = selected.has(value);
+      count.textContent = selected.size ? 'Izabrano: ' + selected.size : 'Sve vrijednosti';
+      clearButton.disabled = selected.size === 0;
+    };
+    const clear = () => { selected.clear(); update(); };
+    const toggle = value => {
+      value = String(value);
+      if (selected.has(value)) selected.delete(value);
+      else selected.add(value);
+      update();
+    };
+    clearButton.addEventListener('click', () => { clear(); renderTable(); });
+    element.append(status, list);
+    update();
+    return {element, selected, clear, toggle};
+  };
   const filterButtons = new Map();
   const selectedRows = new Set();
   let visibleRows = [];
@@ -594,28 +778,17 @@
     }
     renderTable();
   });
-  for (const [code, name] of Object.entries(regions)) regionFilter.add(new Option(name, code));
   const districtRegions = new Map();
   for (const entry of tableData) {
     if (entry.district) districtRegions.set(entry.district, entry.region);
   }
-  for (const [code, name] of Object.entries(regions)) {
-    const districts = [...districtRegions].filter(([, region]) => region === code)
-      .map(([district]) => district).sort(byName.compare);
-    if (!districts.length) continue;
-    const group = document.createElement('optgroup');
-    group.label = name;
-    for (const district of districts) group.append(new Option(district, district));
-    districtFilter.append(group);
-  }
-  districtFilter.addEventListener('input', () => {
-    if (districtFilter.value && regionFilter.value && regionFilter.value !== districtRegions.get(districtFilter.value))
-      regionFilter.value = '';
-  });
-  regionFilter.addEventListener('input', () => {
-    if (districtFilter.value && regionFilter.value && regionFilter.value !== districtRegions.get(districtFilter.value))
-      districtFilter.value = '';
-  });
+  const regionFilter = createChoiceFilter('table-region', 'Regija', Object.entries(regions));
+  const districtOptions = [...districtRegions].sort((a, b) =>
+    byName.compare(regions[a[1]], regions[b[1]]) || byName.compare(a[0], b[0]))
+    .map(([district, region]) => [district, district + ' · ' + regions[region]]);
+  const districtFilter = createChoiceFilter('table-district', 'Okrug', districtOptions);
+  const developmentFilter = createChoiceFilter('table-development', 'Stepen razvijenosti (2014)',
+    Object.entries(developmentLabels));
 
   let columnDrag = null;
   const tableScroll = table.closest('.table-scroll');
@@ -650,6 +823,15 @@
     button.type = 'button';
     button.className = 'column-sort';
     button.textContent = column.label;
+    const headingLines = column.key === 'averageNetWage2025'
+      ? ['Prosječna', 'neto zarada', '2025']
+      : column.key === 'voteDifference' ? ['Razlika', 'glasova', '(lista 3 − SNS)'] : null;
+    if (headingLines) {
+      button.classList.add('is-three-line');
+      button.setAttribute('aria-label', column.label);
+      button.replaceChildren(...headingLines.flatMap((line, index) =>
+        index ? [document.createElement('br'), document.createTextNode(line)] : [document.createTextNode(line)]));
+    }
     button.addEventListener('click', () => {
       ascending = sortKey === column.key ? !ascending : ['name', 'region', 'district'].includes(column.key);
       sortKey = column.key;
@@ -721,9 +903,9 @@
     title.textContent = column.label;
     popup.append(title);
     if (column.key === 'name') popup.append(search);
-    else if (column.key === 'region') popup.append(regionFilter);
-    else if (column.key === 'district') popup.append(districtFilter);
-    else if (column.key === 'developmentGroup2014') popup.append(developmentFilter);
+    else if (column.key === 'region') popup.append(regionFilter.element);
+    else if (column.key === 'district') popup.append(districtFilter.element);
+    else if (column.key === 'developmentGroup2014') popup.append(developmentFilter.element);
     else {
       const range = document.createElement('div');
       range.className = 'filter-range';
@@ -756,7 +938,11 @@
       if (event.newState !== 'open') return;
       const rect = filter.getBoundingClientRect();
       popup.style.left = Math.max(8, Math.min(rect.left, document.documentElement.clientWidth - 243)) + 'px';
-      popup.style.top = Math.max(8, rect.bottom + 124 <= window.innerHeight ? rect.bottom + 5 : rect.top - 124) + 'px';
+      popup.style.top = rect.bottom + 5 + 'px';
+    });
+    popup.addEventListener('toggle', event => {
+      if (event.newState === 'open') popup.style.top = Math.max(8,
+        Math.min(filter.getBoundingClientRect().bottom + 5, window.innerHeight - popup.offsetHeight - 8)) + 'px';
     });
     popup.addEventListener('input', renderTable);
   }
@@ -775,21 +961,21 @@
       else header.removeAttribute('aria-sort');
     }
     const query = searchKey(search.value.trim());
-    const region = regionFilter.value;
-    const district = districtFilter.value;
+    const region = regionFilter.selected;
+    const district = districtFilter.selected;
     filterButtons.get('name').classList.toggle('has-filter', Boolean(query));
-    filterButtons.get('region').classList.toggle('has-filter', Boolean(region));
-    filterButtons.get('district').classList.toggle('has-filter', Boolean(district));
-    filterButtons.get('developmentGroup2014').classList.toggle('has-filter', Boolean(developmentFilter.value));
+    filterButtons.get('region').classList.toggle('has-filter', region.size > 0);
+    filterButtons.get('district').classList.toggle('has-filter', district.size > 0);
+    filterButtons.get('developmentGroup2014').classList.toggle('has-filter', developmentFilter.selected.size > 0);
     const ranges = [...rangeFilters].map(([key, [min, max]]) => {
       filterButtons.get(key).classList.toggle('has-filter', Boolean(min.value || max.value));
       return [key, Number.isNaN(min.valueAsNumber) ? -Infinity : min.valueAsNumber,
         Number.isNaN(max.valueAsNumber) ? Infinity : max.valueAsNumber];
     });
     const filtered = tableData.filter(entry => nameKeys.get(entry.id).includes(query) &&
-      (!region || entry.region === region) &&
-      (!district || entry.district === district) &&
-      (!developmentFilter.value || entry.developmentGroup2014 === Number(developmentFilter.value)) &&
+      (!region.size || region.has(entry.region)) &&
+      (!district.size || district.has(entry.district)) &&
+      (!developmentFilter.selected.size || developmentFilter.selected.has(String(entry.developmentGroup2014))) &&
       ranges.every(([key, min, max]) => (min === -Infinity && max === Infinity) ||
         (entry[key] != null && entry[key] >= min && entry[key] <= max)));
     const activeSelection = selectedSpecial?.id || selected?.id;
@@ -871,10 +1057,10 @@
             filterValue.className = 'table-filter-value';
             filterValue.textContent = format(value);
             filterValue.setAttribute('aria-label', 'Filtriraj po ' + (key === 'region' ? 'regiji' : 'okrugu') + ': ' + cell.title);
-            filterValue.setAttribute('aria-pressed', String(filterControl.value === value));
+            filterValue.setAttribute('aria-pressed', String(filterControl.selected.has(value)));
             filterValue.addEventListener('click', event => {
               event.stopPropagation();
-              filterControl.value = filterControl.value === value ? '' : value;
+              filterControl.toggle(value);
               renderTable();
             });
             cell.append(filterValue);
@@ -892,6 +1078,32 @@
           fill.setAttribute('aria-hidden', 'true');
           const value = document.createElement('span');
           value.className = 'difference-number';
+          value.textContent = format(entry[key]);
+          bar.append(fill, value);
+          cell.append(bar);
+        } else if (key === 'votes' && Number.isFinite(entry[key])) {
+          cell.className = 'share-cell';
+          const bar = document.createElement('span');
+          bar.className = 'share-bar';
+          bar.style.setProperty('--bar-width', Math.max(0, Math.min(100, entry[key])) + '%');
+          const fill = document.createElement('span');
+          fill.className = 'share-fill';
+          fill.setAttribute('aria-hidden', 'true');
+          const value = document.createElement('span');
+          value.className = 'share-number';
+          value.textContent = format(entry[key]);
+          bar.append(fill, value);
+          cell.append(bar);
+        } else if (key === 'averageNetWage2025' && Number.isFinite(entry[key])) {
+          cell.className = 'wage-cell';
+          const bar = document.createElement('span');
+          bar.className = 'wage-bar';
+          bar.style.setProperty('--bar-width', 100 * entry[key] / maxWage + '%');
+          const fill = document.createElement('span');
+          fill.className = 'wage-fill';
+          fill.setAttribute('aria-hidden', 'true');
+          const value = document.createElement('span');
+          value.className = 'wage-number';
           value.textContent = format(entry[key]);
           bar.append(fill, value);
           cell.append(bar);
@@ -982,9 +1194,9 @@
   });
   function clearTableFilters(clearSelection = false, rerender = true) {
     search.value = '';
-    regionFilter.value = '';
-    districtFilter.value = '';
-    developmentFilter.value = '';
+    regionFilter.clear();
+    districtFilter.clear();
+    developmentFilter.clear();
     for (const inputs of rangeFilters.values()) for (const input of inputs) input.value = '';
     if (clearSelection) selectedRows.clear();
     if (rerender) renderTable();
@@ -1223,6 +1435,12 @@
     }
 
     function axis(key, tickCount, start, scale) {
+      if (metrics[key].categorical) {
+        const span = 5;
+        const min = .5 + start * span;
+        return {min, max: min + span / scale, step: 1,
+          format: value => Math.round(value) === 5 ? 'IV dev.' : developmentLabels[Math.round(value)] || '—'};
+      }
       const values = plotData.filter(entry => isVisible(entry.id) && hasPlotValue(entry))
         .map(entry => entry[key]).sort((a, b) => a - b);
       const isPercent = metrics[key].unit === '%';
@@ -1278,6 +1496,11 @@
       }
       const x = value => left + (value - xAxis.min) / (xAxis.max - xAxis.min) * (right - left);
       const y = value => bottom - (value - yAxis.min) / (yAxis.max - yAxis.min) * (bottom - top);
+      const categoryOffset = (entry, salt) => {
+        let hash = salt;
+        for (const char of entry.id) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
+        return (Math.abs(hash) % 1000 / 999 - .5) * .6;
+      };
       axes.replaceChildren();
       const line = (x1, y1, x2, y2, className) =>
         svgNode('line', {x1, y1, x2, y2, class: className}, axes);
@@ -1309,8 +1532,10 @@
       text(16, midY, metricLabel(yKey), {transform: 'rotate(-90 16 ' + midY + ')', 'text-anchor': 'middle', class: 'axis-title'});
       for (const entry of plotData) {
         const dot = points.get(entry.id);
-        dot.setAttribute('cx', Number.isFinite(entry[xKey]) ? x(entry[xKey]) : -10000);
-        dot.setAttribute('cy', Number.isFinite(entry[yKey]) ? y(entry[yKey]) : -10000);
+        dot.setAttribute('cx', Number.isFinite(entry[xKey])
+          ? x(entry[xKey] + (metrics[xKey].categorical ? categoryOffset(entry, 13) : 0)) : -10000);
+        dot.setAttribute('cy', Number.isFinite(entry[yKey])
+          ? y(entry[yKey] + (metrics[yKey].categorical ? categoryOffset(entry, 97) : 0)) : -10000);
       }
     }
 
@@ -1361,8 +1586,8 @@
       const bounds = svg.getBoundingClientRect();
       const fractionX = Math.max(0, Math.min(1, (pair.x - bounds.left - plot.left) / (plot.right - plot.left)));
       const fractionY = Math.max(0, Math.min(1, (pair.y - bounds.top - plot.top) / (plot.bottom - plot.top)));
-      chartScaleX = Math.max(1, Math.min(8, chartPinch.scaleX * pair.distance / chartPinch.distance));
-      chartScaleY = Math.max(1, Math.min(8, chartPinch.scaleY * pair.distance / chartPinch.distance));
+      chartScaleX = Math.max(1, Math.min(20, chartPinch.scaleX * pair.distance / chartPinch.distance));
+      chartScaleY = Math.max(1, Math.min(20, chartPinch.scaleY * pair.distance / chartPinch.distance));
       moveChart(chartPinch.anchorX - fractionX / chartScaleX,
         chartPinch.anchorY - fractionY / chartScaleY);
       ignoreChartClickUntil = Date.now() + 500;
@@ -1387,9 +1612,9 @@
         handle.addEventListener('input', () => {
           let min = Number(bounds.min.value);
           let max = Number(bounds.max.value);
-          if (max - min < 12.5) {
-            if (handle === bounds.min) min = max - 12.5;
-            else max = min + 12.5;
+          if (max - min < 5) {
+            if (handle === bounds.min) min = max - 5;
+            else max = min + 5;
             handle.value = handle === bounds.min ? min : max;
           }
           const scale = 100 / (max - min);
@@ -1410,8 +1635,8 @@
     svg.addEventListener('wheel', event => {
       if (event.ctrlKey) return;
       const point = plotPoint(event);
-      const nextX = wheelScale(event, chartScaleX, 8);
-      const nextY = wheelScale(event, chartScaleY, 8);
+      const nextX = wheelScale(event, chartScaleX, 20);
+      const nextY = wheelScale(event, chartScaleY, 20);
       if (!point || (nextX === chartScaleX && nextY === chartScaleY)) return;
       event.preventDefault();
       const differenceX = 1 / chartScaleX - 1 / nextX;
@@ -1479,18 +1704,24 @@
     function updateMetrics() {
       const sizeKey = sizeControl.value;
       const colorKey = colorControl.value;
-      const maxSize = Math.max(...plotData.map(entry => entry[sizeKey]).filter(Number.isFinite));
+      const sizes = plotData.map(entry => entry[sizeKey]).filter(Number.isFinite);
+      const maxSize = Math.max(...sizes);
       const radius = value => Number.isFinite(value) ? 18 * (value / maxSize) ** .3 : 0;
       for (const entry of [...plotData].sort((a, b) => b[sizeKey] - a[sizeKey])) {
         const dot = points.get(entry.id);
         dot.setAttribute('r', radius(entry[sizeKey]));
+        delete dot.dataset.development;
         if (colorKey === 'region') delete dot.dataset.level;
+        else if (colorKey === 'developmentGroup2014') {
+          delete dot.dataset.level;
+          if (Number.isFinite(entry[colorKey])) dot.dataset.development = entry[colorKey];
+        }
         else if (Number.isFinite(entry[colorKey])) dot.dataset.level = metricClass(entry[colorKey], metrics[colorKey].breaks);
         else delete dot.dataset.level;
         marks.append(dot);
       }
       legend.replaceChildren();
-      legend.classList.toggle('is-numeric', colorKey !== 'region');
+      legend.classList.toggle('is-numeric', colorKey !== 'region' && colorKey !== 'developmentGroup2014');
       if (colorKey === 'region') {
         const title = document.createElement('li');
         title.className = 'scatter-color-title';
@@ -1501,6 +1732,17 @@
           item.dataset.region = code;
           item.textContent = name;
           item.classList.toggle('is-inactive', !selectedRegions.has(code));
+          legend.append(item);
+        }
+      } else if (colorKey === 'developmentGroup2014') {
+        const title = document.createElement('li');
+        title.className = 'scatter-color-title';
+        title.textContent = 'Boja · ' + metricLabel(colorKey);
+        legend.append(title);
+        for (const [code, label] of Object.entries(developmentLabels)) {
+          const item = document.createElement('li');
+          item.dataset.development = code;
+          item.textContent = label;
           legend.append(item);
         }
       } else {
@@ -1518,7 +1760,9 @@
       sizeLabel.textContent = metricLabel(sizeKey) + ' (ublažena skala)';
       const base = 10 ** Math.floor(Math.log10(maxSize));
       const high = [5, 2, 1].find(n => n * base <= maxSize) * base;
-      const samples = high >= 10000 ? [high / 100, high / 10, high] : [high / 10, high / 2, high];
+      const samples = sizeKey === 'averageNetWage2025'
+        ? [Math.min(...sizes), (Math.min(...sizes) + maxSize) / 2, maxSize]
+        : high >= 10000 ? [high / 100, high / 10, high] : [high / 10, high / 2, high];
       sizeLegend.replaceChildren();
       for (const value of samples) {
         const item = document.createElement('span');
@@ -1532,8 +1776,8 @@
       const xKey = xControl.value, yKey = yControl.value;
       get('scatter-description').textContent = 'X osa: ' + metricLabel(xKey) + '. Y osa: ' + metricLabel(yKey) +
         '. Veličina: ' + metricLabel(sizeKey) + '. Boja: ' + (colorKey === 'region' ? 'statistička regija' : metricLabel(colorKey)) +
-        '. Horizontalna referentna linija: ' + benchmarkLabel(yKey) + ' — ' + metricValue({[yKey]: metricAverages[yKey]}, yKey) +
-        '. Izaberi krug za tačne vrijednosti opštine, Inostranstva ili Kaznenih zavoda.';
+        (metrics[yKey].categorical ? '.' : '. Horizontalna referentna linija: ' + benchmarkLabel(yKey) + ' — ' + metricValue({[yKey]: metricAverages[yKey]}, yKey) + '.') +
+        ' Izaberi krug za tačne vrijednosti opštine, Inostranstva ili Kaznenih zavoda.';
       tip.hidden = true;
       select(currentEntry);
       applyFilter();
@@ -1631,6 +1875,19 @@
     else applyVisualFilter(visibleRows);
     showMapValues(selectedSpecial || byId.get(selected?.id));
   }
+  function fitRegion(code) {
+    const outline = [...outlineGroup.children].find(item => item.dataset.region === code);
+    if (!outline) {
+      updateView(1, width / 2, height / 2);
+      return;
+    }
+    const bounds = outline.getBBox();
+    if (!bounds.width || !bounds.height) return;
+    const padding = 1.16;
+    const fittedScale = Math.min(width / (bounds.width * padding),
+      height / (bounds.height * padding), maxMapZoom);
+    updateView(fittedScale, bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+  }
   for (const [code, name] of Object.entries(regions)) {
     const option = document.createElement('div');
     option.className = 'region-option';
@@ -1656,11 +1913,11 @@
     only.textContent = 'Izdvoji';
     only.setAttribute('aria-label', 'Prikaži samo ' + name);
     only.addEventListener('click', () => {
-      if (selectedRegions.size === 1 && selectedRegions.has(code)) return;
       selectedRegions.clear();
       selectedRegions.add(code);
       for (const input of regionPicker.querySelectorAll('input')) input.checked = input.value === code;
       refreshRegions();
+      fitRegion(code);
     });
     label.append(checkbox, name);
     option.append(label, only);
@@ -1670,6 +1927,7 @@
     for (const code of Object.keys(regions)) selectedRegions.add(code);
     for (const input of regionPicker.querySelectorAll('input')) input.checked = true;
     refreshRegions();
+    updateView(1, width / 2, height / 2);
   });
   renderTable();
 
