@@ -40,6 +40,7 @@
     const sizeLabel = get('scatter-size-label');
     let highlighted = null;
     let hoveredPoint = null;
+    let hoveredEntry = null;
     let currentEntry;
     let plot;
 
@@ -88,6 +89,7 @@
     }
 
     function draw() {
+      const axisEntry = hoveredEntry || currentEntry;
       const w = svg.clientWidth;
       const h = svg.clientHeight;
       if (!w || !h) return;
@@ -159,13 +161,13 @@
           svgNode('line', {x1: boxX - 8, x2: boxX + 8, y1: y(median), y2: y(median), class: 'scatter-box-median'}, box);
           const meanMark = svgNode('path', {d: `M ${boxX} ${y(mean) - 7} l 7 7 -7 7 -7 -7 Z`, class: 'scatter-box-mean region-box-mean'}, box);
           svgNode('title', {}, meanMark, `Prosjek opština: ${metricValue({[yKey]: mean}, yKey)}`);
-          if (currentEntry && isChartVisible(currentEntry.id) && Number.isFinite(currentEntry[yKey]) &&
-              currentEntry[yKey] >= yAxis.min && currentEntry[yKey] <= yAxis.max) {
-            const position = y(currentEntry[yKey]);
+          if (axisEntry && isChartVisible(axisEntry.id) && Number.isFinite(axisEntry[yKey]) &&
+              axisEntry[yKey] >= yAxis.min && axisEntry[yKey] <= yAxis.max) {
+            const position = y(axisEntry[yKey]);
             const marker = svgNode('g', {class: 'scatter-box-selected'}, box);
-            const dot = points.get(currentEntry.id);
+            const dot = points.get(axisEntry.id);
             if (dot) marker.style.setProperty('--selected-color', getComputedStyle(dot).fill);
-            svgNode('title', {}, marker, `${currentEntry.name}: ${metricValue(currentEntry, yKey)}.\nMedijana: ${metricValue({[yKey]: median}, yKey)}; prosjek: ${metricValue({[yKey]: mean}, yKey)}.`);
+            svgNode('title', {}, marker, `${axisEntry.name}: ${metricValue(axisEntry, yKey)}.\nMedijana: ${metricValue({[yKey]: median}, yKey)}; prosjek: ${metricValue({[yKey]: mean}, yKey)}.`);
             svgNode('line', {x1: boxX - 9, x2: boxX + 9, y1: position, y2: position}, marker);
             svgNode('path', {d: `M ${boxX + 14} ${position - 5} L ${boxX + 14} ${position + 5} L ${boxX + 8} ${position} Z`}, marker);
           }
@@ -216,14 +218,14 @@
         dot.setAttribute('cy', Number.isFinite(entry[yKey])
           ? y(entry[yKey] + (metrics[yKey].categorical ? categoryOffset(entry, 97) : 0)) : -10000);
       }
-      if (currentEntry && isChartVisible(currentEntry.id)) {
+      if (axisEntry && isChartVisible(axisEntry.id)) {
         for (const [dimension, key, scale, position] of [
           ['x', xKey, xAxis, x], ['y', yKey, yAxis, y],
         ]) {
-          const value = currentEntry[key];
+          const value = axisEntry[key];
           if (!Number.isFinite(value) || value < scale.min || value > scale.max) continue;
           const marker = svgNode('g', {class: 'selected-axis-marker', 'data-axis': dimension}, axes);
-          svgNode('title', {}, marker, `${currentEntry.name}: ${metricValue(currentEntry, key)}`);
+          svgNode('title', {}, marker, `${axisEntry.name}: ${metricValue(axisEntry, key)}`);
           const p = position(value);
           svgNode('path', {d: dimension === 'x'
             ? `M ${p} ${bottom} l -5 8 h 10 Z`
@@ -287,10 +289,12 @@
       if (hoveredPoint === nextPoint) return;
       hoveredPoint?.classList.remove('is-hovered');
       hoveredPoint = nextPoint;
+      hoveredEntry = nextPoint ? entry : null;
       hoveredPoint?.classList.add('is-hovered');
       if (hoveredPoint) marks.append(hoveredPoint);
       else if (highlighted) marks.append(highlighted);
-      showScatterValues(entry || currentEntry);
+      showScatterValues(hoveredEntry || currentEntry);
+      draw();
     }
 
     function hideScatterTooltip() {

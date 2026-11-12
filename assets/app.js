@@ -65,6 +65,7 @@
   let matrixSelection = new Set();
   let scatter = null;
   let regionBars = null;
+  let selectionSummary = null;
   const isVisible = id => selectedRegions.has(byId.get(id).region) &&
     (!visualFilter || visualFilter.has(id)) && matchesMatrixFilter(byId.get(id));
   const matchesMatrixFilter = entry => {
@@ -212,6 +213,13 @@
     getVisibleRows: () => visibleRows, renderTable});
   const {headers, rangeFilters, filterButtons, selectAll, nameFilter, regionFilter,
     districtFilter, developmentFilter, columnVisibility, columnButton} = tableHeader;
+  selectionSummary = window.createSelectionSummary({panel: get('selection-summary'), columns, wholeNumber, totalValues,
+    getState: () => ({entry: selectedSpecial || byId.get(selected?.id),
+      entries: tableData.filter(entry => isVisible(entry.id)), visibleColumns: columnVisibility.selected,
+      scopeLabel: selectedRegions.size === 1 ? regions[[...selectedRegions][0]]
+        : selectedRegions.size === Object.keys(regions).length ? 'Sve regije' : 'Odabrane regije',
+    }),
+  });
 
   function renderTable() {
     const {sortKey, ascending} = tableHeader;
@@ -313,6 +321,7 @@
     hideTooltip();
     scatter?.refresh();
     get('jump-to-visuals').hidden = !visualFilter;
+    selectionSummary?.refresh();
   }
 
   function hideTooltip() { mapView.hideTooltip(); }
@@ -337,6 +346,7 @@
     scatter.select(entry);
     regionBars?.select(entry);
     updateMapReadout(entry);
+    selectionSummary?.refresh();
     if (updateSyncedTable && syncVisualFilters.checked) renderTable();
     if (!entry) return;
     selection.setAttribute('d', selected.getAttribute('d'));
@@ -352,6 +362,7 @@
     regionBars?.select(entry);
     showMapValues(entry);
     if (syncVisualFilters.checked) renderTable();
+    selectionSummary?.refresh();
   }
 
   function wheelScale(event, current, maximum) {

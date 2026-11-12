@@ -15,7 +15,7 @@
   <meta property="og:image:alt" content="Izborna geografija Srbije — mapa opština i gradova">
   <title>Izborna geografija Srbije</title>
   <link rel="icon" href="./assets/favicon.ico" type="image/x-icon" sizes="any">
-  <link rel="stylesheet" href="./assets/style.css?v=20261112-43">
+  <link rel="stylesheet" href="./assets/style.css?v=20261112-summary-2">
   <script src="./data/data.js" defer></script>
   <script src="./data/beograd-results.js" defer></script>
   <script src="./data/beograd-shapes.js" defer></script>
@@ -26,11 +26,11 @@
   <script src="./data/socioeconomic-data.js?v=20261111-1" defer></script>
   <script src="./assets/calculations.js?v=20261112-1" defer></script>
   <script src="./assets/region-viewport.js?v=20261112-refactor-4" defer></script>
-  <script src="./assets/region-bars.js?v=20261112-refactor-5" defer></script>
+  <script src="./assets/region-bars.js?v=20261112-hover-axes-1" defer></script>
   <script src="./assets/filters.js?v=20261112-refactor-1" defer></script>
   <script src="./assets/choice-filter.js?v=20261112-refactor-1" defer></script>
   <script src="./assets/scatter-viewport.js?v=20261112-refactor-4" defer></script>
-  <script src="./assets/scatter.js?v=20261112-refactor-5" defer></script>
+  <script src="./assets/scatter.js?v=20261112-hover-axes-1" defer></script>
   <script src="./assets/map-view.js?v=20261112-1" defer></script>
   <script src="./assets/table-view.js?v=20261112-1" defer></script>
   <script src="./assets/map-legend.js?v=20261112-1" defer></script>
@@ -40,7 +40,8 @@
   <script src="./assets/help-popovers.js?v=20261112-refactor-4" defer></script>
   <script src="./assets/metric-readout.js?v=20261112-refactor-4" defer></script>
   <script src="./assets/view-preferences.js?v=20261112-refactor-4" defer></script>
-  <script src="./assets/app.js?v=20261112-refactor-5" defer></script>
+  <script src="./assets/selection-summary.js?v=20261112-1" defer></script>
+  <script src="./assets/app.js?v=20261112-summary-1" defer></script>
 </head>
 <body>
   <main class="shell">
@@ -349,6 +350,17 @@
         <div id="region-bars-grid" class="region-bars-grid"></div>
       </div>
     </section>
+    <aside id="selection-summary" class="panel selection-summary" aria-labelledby="selection-summary-heading">
+      <div class="panel-header"><h2 id="selection-summary-heading">Pregled izbora</h2></div>
+      <p class="selection-summary-scope" aria-live="polite"></p>
+      <div class="selection-summary-scroll" tabindex="0" role="region" aria-label="Pokazatelji za odabrane jedinice">
+        <table>
+          <thead><tr><th scope="col">Pokazatelj</th><th scope="col">Vrijednost</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="selection-summary-note">Pokazatelji prate vidljive kolone tabele. Zbir prati regije i filtere mape i XY.</p>
+    </aside>
     <section class="panel table-panel" aria-labelledby="table-heading">
       <div class="panel-header">
         <div>

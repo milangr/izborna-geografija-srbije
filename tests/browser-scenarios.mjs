@@ -5,6 +5,101 @@ export async function runScenarios({evaluate, cdp, reload}) {
   };
   await evaluate(`window.qa={get:id=>document.getElementById(id),change(id,value){let c=this.get(id);c.value=value;c.dispatchEvent(new Event('change',{bubbles:true}));},rows:()=>document.querySelectorAll('#municipality-table tbody tr').length,points:()=>document.querySelectorAll('.scatter-mark:not(.is-filtered)').length};`);
   await check('185 rows and points',`qa.rows()===185 && qa.points()===185`);
+  await check('summary is hidden when there is no room', `getComputedStyle(qa.get('selection-summary')).display === 'none'`);
+  await cdp('Emulation.setDeviceMetricsOverride', {width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false});
+  await check('summary fits beside the charts and matches table totals', `(() => {
+    const panel = qa.get('selection-summary');
+    const rect = panel.getBoundingClientRect();
+    const chart = document.querySelector('.scatter-panel').getBoundingClientRect();
+    const total = qa.get('municipality-table').tFoot.rows[0];
+    const headings = [...qa.get('municipality-table').tHead.rows[0].cells];
+    const index = headings.findIndex(cell => cell.textContent.includes('Glasovi Lista3'));
+    return getComputedStyle(panel).display !== 'none' && rect.left >= chart.right
+      && rect.right <= document.documentElement.clientWidth && rect.bottom <= innerHeight
+      && panel.querySelector('[data-metric="listVotes"] td').textContent === total.cells[index].textContent;
+  })()`);
+  await check('summary follows clicked municipality and keeps it during hover', `(() => {
+    const dots = [...document.querySelectorAll('.scatter-mark:not(.is-filtered)')].slice(0, 2);
+    const model = window.createElectionDataModel(window);
+    const entry = model.byId.get(dots[0].dataset.unitId);
+    dots[0].dispatchEvent(new MouseEvent('click', {bubbles: true}));
+    const panel = qa.get('selection-summary');
+    const expected = new Intl.NumberFormat('sr-Latn-RS', {maximumFractionDigits: 0}).format(entry.listVotes);
+    dots[1].dispatchEvent(new PointerEvent('pointermove', {bubbles: true, pointerType: 'mouse'}));
+    const correct = panel.querySelector('.selection-summary-scope').textContent === entry.name
+      && panel.querySelector('[data-metric="listVotes"] td').textContent === expected;
+    const svg = document.querySelector('.scatter-plot');
+    svg.dispatchEvent(new PointerEvent('pointerleave'));
+    svg.dispatchEvent(new MouseEvent('click', {bubbles: true}));
+    return correct && panel.querySelector('.selection-summary-scope').textContent.includes('185');
+  })()`);
+  await check('summary follows region selection and visible columns', `(() => {
+    document.querySelector('.region-only').click();
+    const panel = qa.get('selection-summary');
+    const regional = panel.querySelector('.selection-summary-scope').textContent.includes('17');
+    qa.get('select-all-regions').click();
+    const popup = qa.get('column-visibility');
+    popup.showPopover();
+    const input = popup.querySelector('input[value="listVotes"]');
+    input.checked = false; input.dispatchEvent(new Event('input', {bubbles: true}));
+    popup.querySelector('.choice-filter-actions button').click();
+    const hidden = !panel.querySelector('[data-metric="listVotes"]');
+    popup.showPopover(); input.checked = true; input.dispatchEvent(new Event('input', {bubbles: true}));
+    popup.querySelector('.choice-filter-actions button').click();
+    return regional && hidden && !!panel.querySelector('[data-metric="listVotes"]');
+  })()`);
+  await cdp('Emulation.setDeviceMetricsOverride', {width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false});
+  await check('regional wage X axis uses whole euros without thousands scaling', `(() => {
+    qa.change('region-box-size', 'averageNetWage2025');
+    const ticks = [...document.querySelectorAll('.region-box-x-axis .region-box-x-tick')]
+      .map(tick => tick.textContent).filter(text => text && text !== 'Nema X podataka');
+    const caption = document.querySelector('.region-bars-axis-footer').textContent;
+    return caption.includes('EUR') && !caption.includes('hilj.') && ticks.length > 0
+      && ticks.every(text => /^[0-9.]+$/.test(text))
+      && ticks.some(text => Number(text.replaceAll('.', '')) >= 1000);
+  })()`);
+  await evaluate(`qa.change('region-box-size', 'registeredVoters')`);
+  await check('XY axes follow hover and restore the clicked municipality', `(() => {
+    const svg = document.querySelector('.scatter-plot');
+    const dots = [...svg.querySelectorAll('.scatter-mark:not(.is-filtered)')].slice(0, 2);
+    const model = window.createElectionDataModel(window);
+    const names = dots.map(dot => model.byId.get(dot.dataset.unitId).name);
+    const matches = name => ['x', 'y'].every(axis =>
+      svg.querySelector('[data-axis="' + axis + '"] title')?.textContent.startsWith(name + ':'));
+    const hover = dot => dot.dispatchEvent(new PointerEvent('pointermove', {bubbles: true, pointerType: 'mouse'}));
+    hover(dots[0]);
+    if (!matches(names[0])) return false;
+    svg.dispatchEvent(new PointerEvent('pointerleave'));
+    if (svg.querySelector('[data-axis]')) return false;
+    hover(dots[0]); dots[0].dispatchEvent(new MouseEvent('click', {bubbles: true}));
+    hover(dots[1]);
+    if (!matches(names[1])) return false;
+    svg.dispatchEvent(new PointerEvent('pointerleave'));
+    const retained = matches(names[0]);
+    svg.dispatchEvent(new MouseEvent('click', {bubbles: true}));
+    return retained;
+  })()`);
+  await check('regional axes follow hover and restore the clicked municipality', `(() => {
+    const dots = [...document.querySelectorAll('.region-box-point')].slice(0, 2);
+    const matches = dot => {
+      const name = dot.getAttribute('aria-label').split('\\n')[0].split('. ')[0];
+      return ['.region-box-x-marker[visibility="visible"]', '.region-box-selected-y[visibility="visible"]']
+        .every(selector => document.querySelector(selector + ' title')?.textContent.startsWith(name + ':'));
+    };
+    const hover = dot => dot.dispatchEvent(new PointerEvent('pointerenter', {pointerType: 'mouse'}));
+    const leave = dot => dot.dispatchEvent(new PointerEvent('pointerleave', {pointerType: 'mouse'}));
+    hover(dots[0]);
+    if (!matches(dots[0])) return false;
+    leave(dots[0]);
+    if (document.querySelector('.region-box-selected-y[visibility="visible"]')) return false;
+    hover(dots[0]); dots[0].dispatchEvent(new MouseEvent('click', {bubbles: true})); leave(dots[0]);
+    hover(dots[1]);
+    if (!matches(dots[1])) return false;
+    leave(dots[1]);
+    const retained = matches(dots[0]);
+    dots[0].closest('svg').dispatchEvent(new MouseEvent('click', {bubbles: true}));
+    return retained;
+  })()`);
   await check('wheel moves exactly one option', `(()=>{let c=qa.get('map-color');c.selectedIndex=2;let changes=0;const count=()=>changes++;c.addEventListener('change',count);c.dispatchEvent(new WheelEvent('wheel',{deltaY:100,bubbles:true,cancelable:true}));c.removeEventListener('change',count);return c.selectedIndex===3&&changes===1})()`);
   await check('Ctrl wheel leaves metric unchanged', `(()=>{let c=qa.get('map-color');const before=c.selectedIndex;const e=new WheelEvent('wheel',{deltaY:100,ctrlKey:true,bubbles:true,cancelable:true});c.dispatchEvent(e);return c.selectedIndex===before&&!e.defaultPrevented})()`);
   await check('wheel at boundary allows page scrolling', `(()=>{let c=qa.get('map-color');c.selectedIndex=c.options.length-1;const e=new WheelEvent('wheel',{deltaY:100,bubbles:true,cancelable:true});c.dispatchEvent(e);return c.selectedIndex===c.options.length-1&&!e.defaultPrevented})()`);

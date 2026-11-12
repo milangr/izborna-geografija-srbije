@@ -1,6 +1,7 @@
 (() => {
   'use strict';
   const ns = 'http://www.w3.org/2000/svg';
+  const wholeEuros = new Intl.NumberFormat('sr-Latn-RS', {maximumFractionDigits: 0});
   const svgNode = (tag, attrs = {}) => {
     const node = document.createElementNS(ns, tag);
     for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
@@ -67,6 +68,7 @@
     };
     const updateCurrent = () => {
       const entry = hoveredEntry || selectedEntry;
+      if (hoveredEntry) hideGuide();
       sizeLegend.querySelector('.region-box-selected-example')?.remove();
       const currentDot = pointById.get(entry?.id);
       const currentSize = entry?.[sizeSelect.value];
@@ -96,7 +98,7 @@
         dot.classList.toggle('is-selected', id === selectedEntry?.id);
         dot.classList.toggle('is-hovered', id === hoveredEntry?.id);
       }
-      const axisEntry = selectedEntry;
+      const axisEntry = entry;
       for (const [code, guide] of xGuides) {
         const visible = axisEntry?.region === code && pointById.has(axisEntry.id) && Number.isFinite(axisEntry[sizeSelect.value]);
         guide.marker.setAttribute('visibility', visible ? 'visible' : 'hidden');
@@ -151,7 +153,9 @@
       const all = plottedEntries.map(entry => entry[key]).filter(Number.isFinite);
       const sizeValues = plottedEntries.map(entry => entry[sizeKey]).filter(Number.isFinite);
       const xMagnitudeMax = Math.max(0, ...sizeValues.map(Math.abs));
-      const xDivisor = metrics[sizeKey].normalized ? 1 : xMagnitudeMax >= 1e9 ? 1e9 : xMagnitudeMax >= 1e6 ? 1e6 : xMagnitudeMax >= 1000 ? 1000 : 1;
+      const isWage = sizeKey === 'averageNetWage2025';
+      const xDivisor = isWage || metrics[sizeKey].normalized ? 1 : xMagnitudeMax >= 1e9 ? 1e9 : xMagnitudeMax >= 1e6 ? 1e6 : xMagnitudeMax >= 1000 ? 1000 : 1;
+      const formatX = value => isWage ? wholeEuros.format(value) : number.format(value / xDivisor);
       const xUnit = xDivisor === 1e9 ? 'mlrd.' : xDivisor === 1e6 ? 'mil.' : xDivisor === 1000 ? 'hilj.' : '';
       xCaptionTitle.textContent = xUnit ? `X osa (${xUnit})` : 'X osa';
       axisFooter.title = `X osa: ${metricLabel(sizeKey)}${xUnit ? ` · skala: ${xUnit}` : ''}`;
@@ -231,13 +235,14 @@
       selectedY.append(selectedYLabel, selectedYTitle);
       axisSvg.append(selectedY);
       updateSelectedY = () => {
-        const value = selectedEntry?.[key];
-        const visible = selectedEntry && pointById.has(selectedEntry.id) && Number.isFinite(value) && value >= visibleMin && value <= visibleMax;
+        const entry = hoveredEntry || selectedEntry;
+        const value = entry?.[key];
+        const visible = entry && pointById.has(entry.id) && Number.isFinite(value) && value >= visibleMin && value <= visibleMax;
         selectedY.setAttribute('visibility', visible ? 'visible' : 'hidden');
         if (visible) {
           selectedY.setAttribute('transform', `translate(0 ${y(value)})`);
           selectedYLabel.textContent = number.format(value / axisDivisor);
-          selectedYTitle.textContent = `${selectedEntry.name}: ${metricValue(selectedEntry, key)}`;
+          selectedYTitle.textContent = `${entry.name}: ${metricValue(entry, key)}`;
           selectedYLabel.removeAttribute('textLength');
           if (selectedYLabel.getComputedTextLength() > 33) {
             selectedYLabel.setAttribute('textLength', 33);
@@ -301,7 +306,7 @@
           onChoose?.(null);
         });
         svg.addEventListener('pointermove', event => {
-          if (event.pointerType !== 'touch' && !viewport.isDragging) showGuide(event.clientY, svg);
+          if (event.pointerType !== 'touch' && !viewport.isDragging && !hoveredEntry) showGuide(event.clientY, svg);
         });
         svg.addEventListener('pointerleave', hideGuide);
         viewport.bindPlot(svg);
@@ -479,14 +484,14 @@
           column.append(header, svg);
         }
         const xAxis = svgNode('svg', {viewBox: '0 0 180 44', role: 'img', class: 'region-box-x-axis',
-          'aria-label': sized.length ? `${label}: X osa za ${metricLabel(sizeKey)}, od ${number.format(xLow)} do ${number.format(xHigh)}`
+          'aria-label': sized.length ? `${label}: X osa za ${metricLabel(sizeKey)}, od ${isWage ? formatX(xLow) : number.format(xLow)} do ${isWage ? formatX(xHigh) : number.format(xHigh)}`
             : `${label}: nema podataka za X osu ${metricLabel(sizeKey)}`});
         if (sized.length && code !== 'OTHER') {
           xAxis.append(svgNode('line', {x1: 12, x2: 168, y1: 10, y2: 10, class: 'region-box-x-line'}));
           for (const [value, position, anchor] of [[xLow, 12, 'start'], [(xLow + xHigh) / 2, 90, 'middle'], [xHigh, 168, 'end']]) {
             xAxis.append(svgNode('line', {x1: position, x2: position, y1: 6, y2: 14, class: 'region-box-x-line'}));
             const tick = svgNode('text', {x: position, y: 29, 'text-anchor': anchor, class: 'region-box-x-tick'});
-            tick.textContent = number.format(value / xDivisor);
+            tick.textContent = formatX(value);
             xAxis.append(tick);
           }
         } else {
@@ -503,7 +508,7 @@
         xMarker.append(xMarkerLabel, xMarkerTitle);
         xAxis.append(xMarker);
         if (code !== 'OTHER') xGuides.set(code, {marker: xMarker, x, label: xMarkerLabel,
-          title: xMarkerTitle, format: value => number.format(value / xDivisor)});
+          title: xMarkerTitle, format: formatX});
         const xTotal = document.createElement('div');
         xTotal.className = 'region-box-x-total';
         xTotal.textContent = totalValues(members)[sizeKey] ?? '—';
