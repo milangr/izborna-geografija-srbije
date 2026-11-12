@@ -4,6 +4,15 @@ export async function runScenarios({evaluate, cdp, reload}) {
     console.log("PASS " + name);
   };
   await evaluate(`window.qa={get:id=>document.getElementById(id),change(id,value){let c=this.get(id);c.value=value;c.dispatchEvent(new Event('change',{bubbles:true}));},rows:()=>document.querySelectorAll('#municipality-table tbody tr').length,points:()=>document.querySelectorAll('.scatter-mark:not(.is-filtered)').length};`);
+  await check('initial chart settings match the chosen defaults', `(() => {
+    const expected = {'map-color':'differencePer1000','map-texture':'votersAttended',
+      'scatter-x':'developmentGroup2014','scatter-y':'differencePer1000',
+      'scatter-size':'higherEducationShare','scatter-color':'region',
+      'region-box-y':'differencePer1000','region-box-size':'averageNetWage2025'};
+    return Object.entries(expected).every(([id,value]) => qa.get(id).value === value);
+  })()`);
+  // Use measures available for all units in the general interaction checks below.
+  await evaluate(`qa.change('scatter-x','turnout'); qa.change('scatter-size','registeredVoters'); qa.change('region-box-size','registeredVoters')`);
   await check('185 rows and points',`qa.rows()===185 && qa.points()===185`);
   await check('summary is hidden when there is no room', `getComputedStyle(qa.get('selection-summary')).display === 'none'`);
   await cdp('Emulation.setDeviceMetricsOverride', {width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false});

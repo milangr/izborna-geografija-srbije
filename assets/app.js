@@ -2,9 +2,9 @@
   'use strict';
   const preferenceKey = 'izborna-geografija-prikaz-v1';
   const defaultMetrics = {'map-color': 'differencePer1000', 'map-texture': 'votersAttended',
-    'scatter-x': 'turnout', 'scatter-y': 'differencePer1000',
-    'scatter-size': 'registeredVoters', 'scatter-color': 'region',
-    'region-box-y': 'differencePer1000', 'region-box-size': 'registeredVoters'};
+    'scatter-x': 'developmentGroup2014', 'scatter-y': 'differencePer1000',
+    'scatter-size': 'higherEducationShare', 'scatter-color': 'region',
+    'region-box-y': 'differencePer1000', 'region-box-size': 'averageNetWage2025'};
 
   document.addEventListener('wheel', event => {
     const select = event.target.closest?.('select');
