@@ -11,6 +11,16 @@ export async function runScenarios({evaluate, cdp, reload}) {
       'region-box-y':'differencePer1000','region-box-size':'averageNetWage2025'};
     return Object.entries(expected).every(([id,value]) => qa.get(id).value === value);
   })()`);
+  await check('map difference classes use zero and fifty', `(() => {
+    const model = window.createElectionDataModel(window);
+    const entries = [...model.byId.values()].filter(entry => Number.isFinite(entry.differencePer1000)
+      && document.getElementById(entry.id));
+    const legend = document.querySelector('.map-numeric-legend').textContent;
+    return entries.some(entry => entry.differencePer1000 > -50 && entry.differencePer1000 < 0)
+      && entries.every(entry => document.getElementById(entry.id).classList.contains(
+        'v' + (entry.differencePer1000 < 0 ? 0 : entry.differencePer1000 > 50 ? 2 : 1)))
+      && ['< 0', '0–50', '> 50'].every(label => legend.includes(label));
+  })()`);
   // Use measures available for all units in the general interaction checks below.
   await evaluate(`qa.change('scatter-x','turnout'); qa.change('scatter-size','registeredVoters'); qa.change('region-box-size','registeredVoters')`);
   await check('185 rows and points',`qa.rows()===185 && qa.points()===185`);

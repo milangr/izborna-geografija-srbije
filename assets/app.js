@@ -125,7 +125,7 @@
     if (!values.length) continue;
     const quantile = (items, fraction) => items[Math.min(items.length - 1, Math.ceil(items.length * fraction) - 1)];
     if (key === 'differencePer1000') {
-      mapBreaks[key] = [-50, 50];
+      mapBreaks[key] = [0, 50];
     } else if (key === 'averageNetWage2025') {
       mapBreaks[key] = metrics[key].breaks;
     } else if (isDifference(key)) {
@@ -138,10 +138,10 @@
     }
   }
   const mapColorClass = (value, key) => key === 'differencePer1000'
-    ? value < -50 ? 0 : value > 50 ? 2 : 1
+    ? value < 0 ? 0 : value > 50 ? 2 : 1
     : mapBreaks[key].reduce((level, boundary) => level + (value >= boundary), 0);
   const mapRangeLabels = key => {
-    if (key === 'differencePer1000') return ['< −50', '≥ −50 i ≤ +50', '> +50'];
+    if (key === 'differencePer1000') return ['< 0', '0–50', '> 50'];
     const format = isDifference(key) ? metrics[key].format
       : metrics[key].unit === '%' ? percent : compact.format;
     const breaks = mapBreaks[key].map(format);
