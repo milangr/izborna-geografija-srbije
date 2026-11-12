@@ -15,6 +15,10 @@
         const heading = document.createElement('th');
         heading.scope = 'row';
         heading.textContent = label;
+        if (key === 'voteDifference' && label.includes(' (')) {
+          const split = label.indexOf(' (');
+          heading.replaceChildren(label.slice(0, split), document.createElement('br'), label.slice(split + 1));
+        }
         const cell = document.createElement('td');
         cell.textContent = entry ? entry[key] == null ? '—' : format(entry[key])
           : entries.length ? totals[key] ?? '—' : '—';

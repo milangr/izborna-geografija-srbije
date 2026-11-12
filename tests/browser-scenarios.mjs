@@ -18,8 +18,8 @@ export async function runScenarios({evaluate, cdp, reload}) {
     const legend = document.querySelector('.map-numeric-legend').textContent;
     return entries.some(entry => entry.differencePer1000 > -50 && entry.differencePer1000 < 0)
       && entries.every(entry => document.getElementById(entry.id).classList.contains(
-        'v' + (entry.differencePer1000 < 0 ? 0 : entry.differencePer1000 > 50 ? 2 : 1)))
-      && ['< 0', '0–50', '> 50'].every(label => legend.includes(label));
+        'v' + (entry.differencePer1000 < 0 ? 0 : entry.differencePer1000 >= 50 ? 2 : 1)))
+      && ['< 0', '0–50', '≥ 50'].every(label => legend.includes(label));
   })()`);
   // Use measures available for all units in the general interaction checks below.
   await evaluate(`qa.change('scatter-x','turnout'); qa.change('scatter-size','registeredVoters'); qa.change('region-box-size','registeredVoters')`);

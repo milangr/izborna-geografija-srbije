@@ -637,7 +637,7 @@ a { color: #225c92; }
   .selection-summary-scope { margin: 0; padding: .7rem .9rem; font-size: .8rem; font-weight: 650; border-bottom: 1px solid var(--line); }
   .selection-summary-scroll { min-height: 0; overflow: auto; flex: 1; }
   .selection-summary table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .75rem; }
-  .selection-summary thead th:first-child { width: 55%; }
+  .selection-summary thead th:first-child { width: 48%; }
   .selection-summary tbody th { overflow-wrap: anywhere; }
   .selection-summary th, .selection-summary td { padding: .5rem .65rem; border-bottom: 1px solid var(--line); }
   .selection-summary th { text-align: left; font-weight: 500; }

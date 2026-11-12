@@ -145,11 +145,10 @@
       if (mapBreaks[key][1] <= mapBreaks[key][0]) mapBreaks[key][1] = mapBreaks[key][0] + step;
     }
   }
-  const mapColorClass = (value, key) => key === 'differencePer1000'
-    ? value < 0 ? 0 : value > 50 ? 2 : 1
-    : mapBreaks[key].reduce((level, boundary) => level + (value >= boundary), 0);
+  const mapColorClass = (value, key) =>
+    mapBreaks[key].reduce((level, boundary) => level + (value >= boundary), 0);
   const mapRangeLabels = key => {
-    if (key === 'differencePer1000') return ['< 0', '0–50', '> 50'];
+    if (key === 'differencePer1000') return ['< 0', '0–50', '≥ 50'];
     const breaks = mapBreaks[key].map(legendScale(key, mapBreaks[key]).format);
     return ['< ' + breaks[0], breaks[0] + '–' + breaks[1], '≥ ' + breaks[1]];
   };
