@@ -10,7 +10,6 @@
     const byName = new Intl.Collator('sr-Latn-RS');
     const percent = value => number.format(value) + '%';
     const densityText = value => number.format(value) + ' stan./km²';
-    const compact = new Intl.NumberFormat('sr-Latn-RS', {notation: 'compact', maximumFractionDigits: 1});
     const metrics = {
       developmentGroup2014: {label: 'Stepen razvijenosti', categorical: true,
         format: value => developmentLabels[value]},
@@ -21,7 +20,7 @@
       snsShare: {label: 'Udio SNS (%)', unit: '%', breaks: [35, 50], format: percent},
       snsVotes: {label: 'Glasovi SNS', breaks: [5000, 20000]},
       voteDifference: {label: 'Razlika glasova (Lista3 − SNS)', breaks: [0, 5000], format: signedWholeNumber.format},
-      differencePer1000: {label: 'Razlika na 1000 izašlih', normalized: true, breaks: [0, 100], format: signedDecimal.format},
+      differencePer1000: {label: 'Razlika na 1.000 izašlih', normalized: true, breaks: [0, 100], format: signedDecimal.format},
       validVotes: {label: 'Važeći glasovi', breaks: [10000, 40000]},
       invalidShare: {label: 'Nevažeći listići (%)', unit: '%', breaks: [1.2, 1.6], format: percent},
       turnout: {label: 'Izlaznost (%)', unit: '%', breaks: [50, 65], format: percent},
@@ -44,8 +43,7 @@
       const {label, unit} = metrics[key];
       return unit && !label.endsWith('(' + unit + ')') ? label + ' (' + unit + ')' : label;
     };
-    const mapLegendLabel = key => {
-      const label = metricLabel(key);
+    const mapLegendLabel = (key, label = metricLabel(key)) => {
       const breaks = [...label.matchAll(/ /g)].map(match => match.index);
       const split = breaks.reduce((best, index) => {
         const longest = Math.max(index, label.length - index - 1);
@@ -108,6 +106,6 @@
       higherEducationShare: ['Udio stanovnika od 15 godina naviše s višim ili visokim obrazovanjem prema Popisu 2022.', ['education', 'educationShare']],
       averageNetWage2025: ['Prosječna mjesečna neto zarada u 2025. prema prebivalištu zaposlenih.\nPribližan prikaz u EUR: izvorni RSD iznos podijeljen kursom 117,2026.\nFilter koristi EUR.', ['wages', 'exchangeRate']],
     };
-    return {number, wholeNumber, wageEur, signedDecimal, signedWholeNumber, byName, percent, compact, metrics, metricValue, summedMetrics, signed, metricLabel, mapLegendLabel, isDifference, columns, sourceLinks, columnHelp};
+    return {number, wholeNumber, wageEur, signedDecimal, signedWholeNumber, byName, percent, metrics, metricValue, summedMetrics, signed, metricLabel, mapLegendLabel, isDifference, columns, sourceLinks, columnHelp};
   };
 })();

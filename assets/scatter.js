@@ -2,7 +2,7 @@
   'use strict';
   window.createScatter = ({model, formatting, view, interaction}) => {
     const {data, mappedSpecialResults, byId, metrics, regions, selectedRegions, developmentLabels, xyReferences} = model;
-    const {metricLabel, metricValue, isDifference, percent, number, wageEur, metricClass, rangeLabels, xyReferenceLabel} = formatting;
+    const {metricLabel, legendMetricLabel, metricValue, isDifference, percent, number, wageEur, metricClass, rangeLabels, xyReferenceLabel} = formatting;
     const {metricSelect, showPlotValues, summarizeSelectedRegions, isChartVisible} = view;
     const {touchPair, wheelScale, onChoose, onHover} = interaction;
     const {describeDistribution} = window.electionCalculations;
@@ -338,7 +338,7 @@
       } else if (colorKey === 'developmentGroup2014') {
         const title = document.createElement('li');
         title.className = 'scatter-color-title';
-        title.textContent = 'Boja · ' + metricLabel(colorKey);
+        title.textContent = 'Boja · ' + legendMetricLabel(colorKey);
         legend.append(title);
         for (const [code, label] of Object.entries(developmentLabels)) {
           const item = document.createElement('li');
@@ -349,7 +349,7 @@
       } else {
         const title = document.createElement('li');
         title.className = 'scatter-color-title';
-        title.textContent = 'Boja · ' + metricLabel(colorKey);
+        title.textContent = 'Boja · ' + legendMetricLabel(colorKey);
         legend.append(title);
         rangeLabels(colorKey).forEach((label, index) => {
           const item = document.createElement('li');

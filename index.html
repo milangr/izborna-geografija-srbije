@@ -30,18 +30,18 @@
   <script src="./assets/filters.js?v=20261112-refactor-1" defer></script>
   <script src="./assets/choice-filter.js?v=20261112-refactor-1" defer></script>
   <script src="./assets/scatter-viewport.js?v=20261112-refactor-4" defer></script>
-  <script src="./assets/scatter.js?v=20261112-hover-axes-1" defer></script>
+  <script src="./assets/scatter.js?v=20261112-legend-scale-1" defer></script>
   <script src="./assets/map-view.js?v=20261112-1" defer></script>
   <script src="./assets/table-view.js?v=20261112-1" defer></script>
-  <script src="./assets/map-legend.js?v=20261112-1" defer></script>
+  <script src="./assets/map-legend.js?v=20261112-legend-scale-1" defer></script>
   <script src="./assets/table-header.js?v=20261112-2" defer></script>
   <script src="./assets/data-model.js?v=20261112-refactor-5" defer></script>
-  <script src="./assets/metric-definitions.js?v=20261112-refactor-4" defer></script>
+  <script src="./assets/metric-definitions.js?v=20261112-legend-scale-1" defer></script>
   <script src="./assets/help-popovers.js?v=20261112-refactor-4" defer></script>
   <script src="./assets/metric-readout.js?v=20261112-refactor-4" defer></script>
   <script src="./assets/view-preferences.js?v=20261112-refactor-4" defer></script>
   <script src="./assets/selection-summary.js?v=20261112-1" defer></script>
-  <script src="./assets/app.js?v=20261112-map-classes-1" defer></script>
+  <script src="./assets/app.js?v=20261112-legend-scale-1" defer></script>
 </head>
 <body>
   <main class="shell">
@@ -257,10 +257,10 @@
         <div class="legend">
       <table class="text-small">
         <caption>Udio važećih glasova</caption>
-        <thead><tr><th scope="col">Stan./km²</th><th scope="col">&lt; 35%</th><th scope="col">≥ 35% i &lt; 50%</th><th scope="col">≥ 50%</th></tr></thead>
+        <thead><tr><th scope="col">Stan./km²</th><th scope="col">&lt; 35%</th><th scope="col">35%–50%</th><th scope="col">≥ 50%</th></tr></thead>
         <tbody>
           <tr><th scope="row" class="row-head">≥ 150</th><td><svg aria-hidden="true"><rect width="100%" height="100%" class="v0"/><rect width="100%" height="100%" fill="url(#rs-key-dots-2)"/></svg></td><td><svg aria-hidden="true"><rect width="100%" height="100%" class="v1"/><rect width="100%" height="100%" fill="url(#rs-key-dots-2)"/></svg></td><td><svg aria-hidden="true"><rect width="100%" height="100%" class="v2"/><rect width="100%" height="100%" fill="url(#rs-key-dots-2)"/></svg></td></tr>
-          <tr><th scope="row" class="row-head"><span class="range-line">≥ 60</span><span class="range-line">i &lt; 150</span></th><td><svg aria-hidden="true"><rect width="100%" height="100%" class="v0"/><rect width="100%" height="100%" fill="url(#rs-key-dots-1)"/></svg></td><td><svg aria-hidden="true"><rect width="100%" height="100%" class="v1"/><rect width="100%" height="100%" fill="url(#rs-key-dots-1)"/></svg></td><td><svg aria-hidden="true"><rect width="100%" height="100%" class="v2"/><rect width="100%" height="100%" fill="url(#rs-key-dots-1)"/></svg></td></tr>
+          <tr><th scope="row" class="row-head">60–150</th><td><svg aria-hidden="true"><rect width="100%" height="100%" class="v0"/><rect width="100%" height="100%" fill="url(#rs-key-dots-1)"/></svg></td><td><svg aria-hidden="true"><rect width="100%" height="100%" class="v1"/><rect width="100%" height="100%" fill="url(#rs-key-dots-1)"/></svg></td><td><svg aria-hidden="true"><rect width="100%" height="100%" class="v2"/><rect width="100%" height="100%" fill="url(#rs-key-dots-1)"/></svg></td></tr>
           <tr><th scope="row" class="row-head">&lt; 60</th><td><svg aria-hidden="true"><rect width="100%" height="100%" class="v0"/><rect width="100%" height="100%" fill="url(#rs-key-dots-0)"/></svg></td><td><svg aria-hidden="true"><rect width="100%" height="100%" class="v1"/><rect width="100%" height="100%" fill="url(#rs-key-dots-0)"/></svg></td><td><svg aria-hidden="true"><rect width="100%" height="100%" class="v2"/><rect width="100%" height="100%" fill="url(#rs-key-dots-0)"/></svg></td></tr>
         </tbody>
       </table>

@@ -45,7 +45,7 @@
     RS23: 'Kosovo i Metohija',
     OTHER: 'Ostalo',
   };
-  const {number, wholeNumber, wageEur, signedDecimal, signedWholeNumber, byName, percent, compact,
+  const {number, wholeNumber, wageEur, signedDecimal, signedWholeNumber, byName, percent,
     metrics, metricValue, summedMetrics, signed, metricLabel, mapLegendLabel,
     isDifference, columns, sourceLinks, columnHelp} = window.createMetricDefinitions({developmentLabels, shortRegions, tableRegions});
   const get = id => document.getElementById(id);
@@ -112,11 +112,19 @@
     state: {get visualFilter() { return visualFilter; }, get distributionRevision() { return distributionRevision; }},
   });
   const metricClass = (value, [low, high]) => value < low ? 0 : value < high ? 1 : 2;
+  function legendScale(key, breaks = metrics[key].breaks || []) {
+    const magnitude = Math.max(0, ...breaks.map(Math.abs));
+    const divisor = metrics[key].unit === '%' || metrics[key].normalized || key === 'averageNetWage2025' ? 1
+      : magnitude >= 1e9 ? 1e9 : magnitude >= 1e6 ? 1e6 : magnitude >= 1000 ? 1000 : 1;
+    const unit = divisor === 1e9 ? 'mlrd.' : divisor === 1e6 ? 'mil.' : divisor === 1000 ? 'hilj.' : '';
+    const format = metrics[key].unit === '%' ? percent
+      : value => (isDifference(key) ? signedDecimal : number).format(value / divisor);
+    return {label: metricLabel(key) + (unit ? ' (' + unit + ')' : ''), format};
+  }
+  const legendMetricLabel = key => legendScale(key).label;
   function rangeLabels(key) {
-    const format = isDifference(key) ? metrics[key].format
-      : metrics[key].unit === '%' ? percent : compact.format;
-    const [low, high] = metrics[key].breaks.map(format);
-    return ['< ' + low, '≥ ' + low + ' i < ' + high, '≥ ' + high];
+    const [low, high] = metrics[key].breaks.map(legendScale(key).format);
+    return ['< ' + low, low + '–' + high, '≥ ' + high];
   }
   const mapBreaks = {};
   for (const key of Object.keys(metrics)) {
@@ -142,10 +150,8 @@
     : mapBreaks[key].reduce((level, boundary) => level + (value >= boundary), 0);
   const mapRangeLabels = key => {
     if (key === 'differencePer1000') return ['< 0', '0–50', '> 50'];
-    const format = isDifference(key) ? metrics[key].format
-      : metrics[key].unit === '%' ? percent : compact.format;
-    const breaks = mapBreaks[key].map(format);
-    return ['< ' + breaks[0], '≥ ' + breaks[0] + ' i < ' + breaks[1], '≥ ' + breaks[1]];
+    const breaks = mapBreaks[key].map(legendScale(key, mapBreaks[key]).format);
+    return ['< ' + breaks[0], breaks[0] + '–' + breaks[1], '≥ ' + breaks[1]];
   };
   const mapDevelopmentGroup = code => code <= 2 ? 1 : code <= 4 ? 3 : 5;
   function metricSelect(id, defaultValue, includeRegions = false) {
@@ -170,7 +176,9 @@
     controls: {mapColor, mapTexture, specialMapControls},
     state: {get matrixSelection() { return matrixSelection; },
       set matrixSelection(value) { matrixSelection = value; }},
-    formatting: {metricClass, mapDevelopmentGroup, mapColorClass, metricLabel, mapLegendLabel,
+    formatting: {metricClass, mapDevelopmentGroup, mapColorClass,
+      metricLabel: legendMetricLabel, mapMetricLabel: key => legendScale(key, mapBreaks[key]).label,
+      mapLegendLabel: key => mapLegendLabel(key, legendMetricLabel(key)),
       mapRangeLabels, rangeLabels},
     actions: {refreshVisuals, renderTable, syncVisualFilters, clearTableFilters, chooseSpecial,
       isVisible, showMapValues, getSelectedEntry: () => selectedSpecial || byId.get(selected?.id),
@@ -378,7 +386,7 @@
 
   scatter = window.createScatter({
     model: {data, mappedSpecialResults, byId, metrics, regions, selectedRegions, developmentLabels, xyReferences},
-    formatting: {metricLabel, metricValue, isDifference, percent, number, wageEur, metricClass, rangeLabels, xyReferenceLabel},
+    formatting: {metricLabel, legendMetricLabel, metricValue, isDifference, percent, number, wageEur, metricClass, rangeLabels, xyReferenceLabel},
     view: {metricSelect, showPlotValues, summarizeSelectedRegions, isChartVisible},
     interaction: {touchPair, wheelScale, onHover: setHover, onChoose: entry => {
       if (syncVisualFilters.checked) clearTableFilters(true);

@@ -3,7 +3,7 @@
   window.createMapLegend = ({model, controls, state, formatting, actions}) => {
     const {data, mappedSpecialResults, regions, metrics, developmentLabels} = model;
     const {mapColor, mapTexture, specialMapControls} = controls;
-    const {metricClass, mapDevelopmentGroup, mapColorClass, metricLabel, mapLegendLabel,
+    const {metricClass, mapDevelopmentGroup, mapColorClass, metricLabel, mapMetricLabel, mapLegendLabel,
       mapRangeLabels, rangeLabels} = formatting;
     const {refreshVisuals, renderTable, syncVisualFilters, clearTableFilters, chooseSpecial,
       isVisible, showMapValues, getSelectedEntry, hideTooltip, updateMapReadout} = actions;
@@ -281,37 +281,19 @@
       developmentNote.hidden = color !== 'developmentGroup2014';
       mapLegend.classList.toggle('is-matrix', !colorMatrix.hidden);
       mapLegend.classList.toggle('is-development', color === 'developmentGroup2014');
-      if (color !== 'region') colorCaptionText.textContent = 'Boja · ' + metricLabel(color);
+      if (color !== 'region') colorCaptionText.textContent = 'Boja · ' + mapMetricLabel(color);
       textureCaption.textContent = mapLegendLabel(texture);
       const headings = colorMatrix.querySelectorAll('thead th');
       const colorRanges = !colorMatrix.hidden ? mapRangeLabels(color) : [];
       colorRanges.forEach((label, index) => {
-        const bounds = label.split(' i ');
-        if (bounds.length === 2) {
-          const first = document.createElement('span');
-          first.className = 'range-line';
-          first.textContent = bounds[0];
-          const second = document.createElement('span');
-          second.className = 'range-line';
-          second.textContent = 'i ' + bounds[1];
-          headings[index + 1].replaceChildren(first, second);
-        } else headings[index + 1].textContent = label;
-        headings[index + 1].title = metricLabel(color) + ': ' + label;
+        headings[index + 1].textContent = label;
+        headings[index + 1].title = mapMetricLabel(color) + ': ' + label;
       });
       const textureRanges = rangeLabels(texture).reverse();
       textureRanges.forEach((label, index) => {
-        const bounds = label.split(' i ');
         for (const table of [colorMatrix, developmentLegend]) {
           const row = table.querySelectorAll('tbody th')[index];
-          if (bounds.length === 2) {
-            const first = document.createElement('span');
-            first.className = 'range-line';
-            first.textContent = bounds[0];
-            const second = document.createElement('span');
-            second.className = 'range-line';
-            second.textContent = 'i ' + bounds[1];
-            row.replaceChildren(first, second);
-          } else row.textContent = label;
+          row.textContent = label;
           row.title = metricLabel(texture) + ': ' + label;
           const range = document.createElement('span');
           range.className = 'map-density-range';
@@ -329,7 +311,7 @@
       if (!colorMatrix.hidden) {
         colorMatrix.querySelectorAll('tbody tr').forEach((row, rowIndex) => {
           row.querySelectorAll('td').forEach((cell, columnIndex) => {
-            const description = 'Boja opštine · ' + metricLabel(color) + ': ' + colorRanges[columnIndex]
+            const description = 'Boja opštine · ' + mapMetricLabel(color) + ': ' + colorRanges[columnIndex]
               + '\nGustina tačaka · ' + metricLabel(texture) + ': ' + textureRanges[rowIndex];
             cell.setAttribute('aria-label', description.replace('\n', '; '));
             cell.tabIndex = 0;
