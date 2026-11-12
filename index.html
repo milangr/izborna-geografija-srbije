@@ -15,7 +15,7 @@
   <meta property="og:image:alt" content="Izborna geografija Srbije — mapa opština i gradova">
   <title>Izborna geografija Srbije</title>
   <link rel="icon" href="./assets/favicon.ico" type="image/x-icon" sizes="any">
-  <link rel="stylesheet" href="./assets/style.css?v=20261111-29">
+  <link rel="stylesheet" href="./assets/style.css?v=20261112-43">
   <script src="./data/data.js" defer></script>
   <script src="./data/beograd-results.js" defer></script>
   <script src="./data/beograd-shapes.js" defer></script>
@@ -24,13 +24,35 @@
   <script src="./data/region-outlines.js" defer></script>
   <script src="./data/special-results.js?v=20261110-2" defer></script>
   <script src="./data/socioeconomic-data.js?v=20261111-1" defer></script>
-  <script src="./assets/app.js?v=20261111-38" defer></script>
+  <script src="./assets/calculations.js?v=20261112-1" defer></script>
+  <script src="./assets/region-viewport.js?v=20261112-refactor-4" defer></script>
+  <script src="./assets/region-bars.js?v=20261112-refactor-5" defer></script>
+  <script src="./assets/filters.js?v=20261112-refactor-1" defer></script>
+  <script src="./assets/choice-filter.js?v=20261112-refactor-1" defer></script>
+  <script src="./assets/scatter-viewport.js?v=20261112-refactor-4" defer></script>
+  <script src="./assets/scatter.js?v=20261112-refactor-5" defer></script>
+  <script src="./assets/map-view.js?v=20261112-1" defer></script>
+  <script src="./assets/table-view.js?v=20261112-1" defer></script>
+  <script src="./assets/map-legend.js?v=20261112-1" defer></script>
+  <script src="./assets/table-header.js?v=20261112-2" defer></script>
+  <script src="./assets/data-model.js?v=20261112-refactor-5" defer></script>
+  <script src="./assets/metric-definitions.js?v=20261112-refactor-4" defer></script>
+  <script src="./assets/help-popovers.js?v=20261112-refactor-4" defer></script>
+  <script src="./assets/metric-readout.js?v=20261112-refactor-4" defer></script>
+  <script src="./assets/view-preferences.js?v=20261112-refactor-4" defer></script>
+  <script src="./assets/app.js?v=20261112-refactor-5" defer></script>
 </head>
 <body>
   <main class="shell">
     <header class="page-header">
       <h1>Izborna geografija Srbije</h1>
+      <div class="page-header-actions">
       <a class="badge" href="https://www.rik.parlament.gov.rs/542645/rezultati/" target="_blank" rel="noopener noreferrer" aria-label="Konačni rezultati parlamentarnih izbora 2026. na sajtu RIK-a">Parlamentarni izbori 2026 ↗</a>
+      <div class="reset-view-help">
+        <button id="reset-view-preferences" type="button" aria-describedby="view-preferences-note">Vrati početni prikaz</button>
+        <div id="view-preferences-note" class="filter-link-tooltip reset-view-tooltip" role="tooltip"><p>Pokazatelji, regije i povezivanje pamte se u ovom pregledniku.</p><p>Dugme vraća početne postavke i briše filtere i zum.</p></div>
+      </div>
+      </div>
     </header>
     <p class="mobile-advice">Za detaljno poređenje mape, grafikona i tabele preporučujemo računar. Na telefonu zumirajte mapu i XY grafikon s dva prsta; mapu možete zumirati i dugmadima +/−. Tabelu pomjerajte u stranu.</p>
     <nav class="mobile-jumps" aria-label="Brza navigacija"><a href="#map-heading">Mapa</a><a href="#scatter-heading">XY grafikon</a><a href="#table-heading">Tabela</a><a href="#notes-heading">Izvori</a></nav>
@@ -39,17 +61,17 @@
         <div class="panel-header visual-header">
           <div class="visual-heading">
             <h2 id="map-heading">Mapa opština</h2>
-            <span class="method-help">
-              <button class="method-help-button" type="button" aria-label="Metodologija mape" aria-describedby="map-method-tip">i</button>
-              <span class="method-tooltip" id="map-method-tip" role="tooltip"><span class="tooltip-sentence">Boja i gustina tačaka prikazuju izabrane pokazatelje po opštini i za dva zasebna kruga regije Ostalo.</span><span class="tooltip-sentence">Boja ima tri raspona. Za razliku glasova granice su 0 i +5.000, a za ostale brojčane pokazatelje rasponi približno dijele opštine na trećine. Gustina tačaka ima tri raspona.</span><span class="tooltip-sentence">Siva označava nedostupnu ili isključenu vrijednost.</span><span class="tooltip-sentence">Bez odabrane opštine, brojevi iznad sažimaju uključene regije.</span></span>
-            </span>
+            <div class="method-help">
+              <button class="method-help-button" type="button" aria-label="Kako koristiti mapu" aria-describedby="map-method-tip">i</button>
+              <div class="method-tooltip" id="map-method-tip" role="tooltip"><p class="tooltip-sentence">Izaberi pokazatelje za boju i gustinu tačaka.<br>Klik na opštinu prikazuje njene vrijednosti i označava je na povezanim grafikonima.</p><p class="tooltip-sentence">Bez odabrane opštine brojevi sažimaju uključene regije.</p></div>
+            </div>
           </div>
           <span class="readout-scope" id="map-readout-scope">Sve regije · zbir</span>
         </div>
         <div class="visual-options">
           <div class="metric-controls" role="group" aria-label="Metrike mape">
-            <div class="metric-row"><label for="map-color">Boja opštine</label><select id="map-color"></select><div class="metric-result" id="map-color-value"></div></div>
-            <div class="metric-row"><label for="map-texture">Gustina tačaka</label><select id="map-texture"></select><div class="metric-result" id="map-texture-value"></div></div>
+            <div class="metric-row"><label for="map-color">Boja opštine</label><select id="map-color"></select><div class="metric-result" id="map-color-value"></div><div class="metric-visual" id="map-color-visual"></div></div>
+            <div class="metric-row"><label for="map-texture">Gustina tačaka</label><select id="map-texture"></select><div class="metric-result" id="map-texture-value"></div><div class="metric-visual" id="map-texture-visual"></div></div>
           </div>
         </div>
         <div class="map-stage">
@@ -226,6 +248,10 @@
     </svg>
           <div class="map-specials" role="group" aria-label="Ostalo: glasanje bez opštinske geometrije"></div>
           <div class="map-tooltip" aria-hidden="true" hidden></div>
+          <div class="map-count-help">
+            <div class="map-municipality-count" id="map-municipality-count" aria-live="polite" tabindex="0" aria-describedby="map-count-tooltip"></div>
+            <span id="map-count-tooltip" class="map-count-tooltip" role="tooltip"><span class="empty-key" aria-hidden="true"></span> Sivo: bez prikazanih vrijednosti.</span>
+          </div>
         </div>
         <div class="legend">
       <table class="text-small">
@@ -239,34 +265,33 @@
       </table>
       <ul class="map-region-legend" aria-label="Boje statističkih regija" hidden></ul>
     </div>
-      <fieldset class="region-picker" aria-label="Regije za mapu, XY grafikon i prosjek">
-        <legend>Prikaz regija i prosjek <button id="select-all-regions" class="region-select-all" type="button" disabled>Odaberi sve</button></legend>
+      <fieldset class="region-picker" aria-label="Regije za mapu i XY grafikon">
+        <legend>Regije mape i XY <button id="select-all-regions" class="region-select-all" type="button" disabled>Odaberi sve</button></legend>
         <div class="region-picker-options"></div>
       </fieldset>
-      <label class="map-table-sync"><input id="sync-visual-filters" type="checkbox"> Tabela prati regije i odabranu opštinu</label>
-      <p class="map-missing-note"><span class="empty-key" aria-hidden="true"></span> Bez prikazanih vrijednosti</p>
       </section>
       <section class="panel scatter-panel" aria-labelledby="scatter-heading">
       <div class="panel-header visual-header">
         <div class="visual-heading">
           <h2 id="scatter-heading">Odnos pokazatelja po opštinama</h2>
-          <span class="method-help">
-            <button class="method-help-button" type="button" aria-label="Metodologija XY grafikona" aria-describedby="scatter-method-tip">i</button>
-            <span class="method-tooltip" id="scatter-method-tip" role="tooltip"><span class="tooltip-sentence">Svaki krug je opština ili zbirna jedinica: X i Y određuju položaj, a ostali izbori veličinu i boju.</span><span class="tooltip-sentence">Početak i kraj vidljivog raspona podešavaju se zasebno za X i Y osu. Povuci grafikon da pomjeriš izabrani dio; puni raspon prikazuje sve tačke.</span><span class="tooltip-sentence">Vodoravna linija prikazuje zbirni pokazatelj za izborne udjele, razliku glasova i gustinu, ponderisani udio 65+, a prost prosjek za ostale mjere.</span><span class="tooltip-sentence">Filteri tabele važe kada je uključeno njihovo prenošenje na grafikon.</span><span class="tooltip-sentence">Regija Ostalo obuhvata Inostranstvo i Kaznene zavode.</span></span>
-          </span>
+          <div class="method-help">
+            <button class="method-help-button" type="button" aria-label="Kako koristiti XY grafikon" aria-describedby="scatter-method-tip">i</button>
+            <div class="method-tooltip" id="scatter-method-tip" role="tooltip"><p class="tooltip-sentence">Izaberi šta prikazuju X i Y osa te veličina i boja krugova.<br>Klik na krug označava jedinicu i na mapi.</p><p class="tooltip-sentence">Referentne linije označavaju medijane opština.<br>Box uz Y osu pokazuje raspodjelu vrijednosti na toj osi.</p></div>
+          </div>
         </div>
         <span class="readout-scope" id="scatter-readout-scope">Sve regije · zbir</span>
       </div>
       <div class="visual-options">
         <div class="metric-controls" role="group" aria-label="Metrike XY grafikona">
-          <div class="metric-row"><label for="scatter-x">X osa</label><select id="scatter-x"></select><div class="metric-result" id="scatter-x-value"></div></div>
-          <div class="metric-row"><label for="scatter-y">Y osa</label><select id="scatter-y"></select><div class="metric-result" id="scatter-y-value"></div></div>
-          <div class="metric-row"><label for="scatter-size">Veličina kruga</label><select id="scatter-size"></select><div class="metric-result" id="scatter-size-value"></div></div>
-          <div class="metric-row"><label for="scatter-color">Boja kruga</label><select id="scatter-color"></select><div class="metric-result" id="scatter-color-value"></div></div>
+          <div class="metric-row"><label for="scatter-x">X osa</label><select id="scatter-x"></select><div class="metric-result" id="scatter-x-value"></div><div class="metric-visual" id="scatter-x-visual"></div></div>
+          <div class="metric-row"><label for="scatter-y">Y osa</label><select id="scatter-y"></select><div class="metric-result" id="scatter-y-value"></div><div class="metric-visual" id="scatter-y-visual"></div></div>
+          <div class="metric-row"><label for="scatter-size">Veličina kruga</label><select id="scatter-size"></select><div class="metric-result" id="scatter-size-value"></div><div class="metric-visual" id="scatter-size-visual"></div></div>
+          <div class="metric-row"><label for="scatter-color">Boja kruga</label><select id="scatter-color"></select><div class="metric-result" id="scatter-color-value"></div><div class="metric-visual" id="scatter-color-visual"></div></div>
         </div>
       </div>
       <ul class="scatter-regions" aria-label="Boje krugova"></ul>
       <div class="scatter-stage">
+        <button class="method-help-button scatter-zoom-help-button" type="button" popovertarget="scatter-zoom-help" aria-label="Pomoć za zumiranje XY grafikona">i</button>
         <svg class="scatter-plot" role="img" aria-labelledby="scatter-heading scatter-description">
           <desc id="scatter-description"></desc>
         </svg>
@@ -292,11 +317,38 @@
               <input id="scatter-y-max" aria-label="Kraj Y ose" type="range" min="0" max="100" step="0.5" value="100">
             </div>
           </div>
-          <span class="scatter-zoom-hint">Pomjeri krajeve raspona, povuci uvećani grafikon ili ga zumiraj s dva prsta</span>
+          <div id="scatter-zoom-help" class="scatter-zoom-help" popover>
+            <button type="button" popovertarget="scatter-zoom-help" popovertargetaction="hide" aria-label="Zatvori pomoć">×</button>
+            <strong>Zumiranje XY grafikona</strong>
+            <p>Klizači X i Y određuju vidljivi raspon.</p><p>Povuci grafikon za pomjeranje; točkićem ili s dva prsta zumiraj. Vrati klizače na krajeve za puni prikaz.</p>
+          </div>
         </div>
       </div>
       </section>
     </div>
+    <section class="panel region-bars-panel" aria-labelledby="region-bars-heading">
+      <div class="panel-header visual-header">
+        <div class="region-heading-controls">
+        <div class="visual-heading">
+          <h2 id="region-bars-heading">Raspodjela po regijama</h2>
+          <div class="method-help">
+            <button class="method-help-button" type="button" aria-label="Kako koristiti regionalni prikaz" aria-describedby="region-bars-method-tip">i</button>
+            <div class="method-tooltip" id="region-bars-method-tip" role="tooltip"><p class="tooltip-sentence">Izaberi mjere za Y osu i X položaj odnosno veličinu kruga.<br>Klik na tačku označava opštinu i na mapi i XY grafikonu.</p><p class="tooltip-sentence">Svaka kolona je jedna regija.<br>Kutija pokazuje srednjih 50% opština, crta medijanu, romb prosjek, a brkovi raspon bez izdvojenih vrijednosti.</p><p class="tooltip-sentence">Ostalo prikazuje posebne zbirne jedinice bez box statistike.</p><img class="region-box-explainer" src="./assets/boxplot-explained.svg?v=20261112-1" width="560" height="154" alt="Brkovi: min/max ili granica 1,5 × IQR. Kutija: prvi i treći kvartil. Crta: medijana. Romb: prosjek. Tačka: opština ili grad; X položaj i veličina prate izabranu mjeru."></div>
+          </div>
+        </div>
+        <div class="region-box-controls">
+          <label>X veličina kruga <select id="region-box-size"></select></label>
+          <label>Y osa <select id="region-box-y"></select></label>
+        </div>
+        <div id="region-box-size-legend" class="region-box-size-legend" role="group" aria-label="Veličina krugova"></div>
+        </div>
+        <span class="readout-scope" id="region-bars-scope"></span>
+      </div>
+      <p id="region-bars-category-note" hidden>Za box plot izaberite numeričku mjeru na Y osi.</p>
+      <div class="region-bars-scroll" tabindex="0" role="region" aria-labelledby="region-bars-heading">
+        <div id="region-bars-grid" class="region-bars-grid"></div>
+      </div>
+    </section>
     <section class="panel table-panel" aria-labelledby="table-heading">
       <div class="panel-header">
         <div>
@@ -305,12 +357,24 @@
       </div>
       <div class="table-visual-controls">
         <div class="table-filter-actions">
-          <label><input id="sync-table-filters" type="checkbox"> Primijeni filtere na mapu i XY</label>
+          <div class="filter-link-help">
+            <label for="filter-link-mode" tabindex="0" aria-describedby="filter-link-tooltip">Povezivanje</label>
+            <div id="filter-link-tooltip" class="filter-link-tooltip" role="tooltip">
+              <p><strong>Bez povezivanja:</strong> tabela i prikazi su nezavisni.</p>
+              <p><strong>Tabela → grafikoni:</strong> filteri i izbor redova prenose se na prikaze.</p>
+              <p><strong>Grafikoni → tabela:</strong> tabela prati regije, legendu i odabranu opštinu.</p>
+            </div>
+          </div>
+          <select id="filter-link-mode" title="Grafikoni obuhvataju mapu, XY i box.&#10;Smjer određuje ko prenosi izbor i filtere.">
+            <option value="none">Bez povezivanja</option>
+            <option value="table">Tabela → grafikoni</option>
+            <option value="visual">Grafikoni → tabela</option>
+          </select>
           <button id="clear-table-filters" type="button">Očisti filtere</button>
         </div>
         <div class="table-selection-actions">
           <a class="table-export" href="./data/izborna-geografija-srbije-2026.xlsx?v=20261111-3" download="izborna-geografija-srbije-2026.xlsx" title="Preuzmi svih 185 redova, bez obzira na filtere">Preuzmi XLSX · svi redovi</a>
-          <a id="jump-to-visuals" href="#map-heading" hidden>Prikaži mapu i XY ↑</a>
+          <a id="jump-to-visuals" href="#map-heading" hidden>Prikaži mapu, XY i box ↑</a>
         </div>
       </div>
       <p class="table-scroll-hint"><span>Kliknite na naziv kolone za sortiranje; ponovni klik mijenja smjer.</span> <span>Povucite ⋮⋮ u zaglavlju za preslagivanje kolona.</span> <span>Na telefonu pomjerite tabelu lijevo ili desno za ostale kolone.</span></p>
@@ -335,7 +399,7 @@
               <div><dt>Izborni rezultati · RIK</dt><dd>Glasovi za Lista3 i SNS (koaliciona lista broj 1), važeći i nevažeći listići, izašli i upisani birači, biračka mjesta, regija i okrug. <a href="https://www.rik.parlament.gov.rs/542645/rezultati/">Konačni rezultati i mapa</a> · <a href="https://www.rik.parlament.gov.rs/export-results/680072/2">Podaci po biračkim mjestima (CSV)</a></dd></div>
               <div><dt>Stanovništvo · RZS</dt><dd>Godišnji prosjek broja stanovnika za 2025. i udio osoba 65+. <a href="https://publikacije.stat.gov.rs/G2026/HtmlL/G20261178.html">Procjene stanovništva, tabele 4 i 6</a></dd></div>
               <div><dt>Razvijenost · Vlada RS</dt><dd>Zvanične grupe razvijenosti jedinica lokalne samouprave prema <a href="https://ras.gov.rs/uploads/2020/05/uredba-o-utvrdivanju-jedinstvene-liste-razvijenosti-regiona-i-jedinica.pdf">uredbi za 2014. godinu</a>.</dd></div>
-              <div><dt>Prosječna neto zarada · RZS</dt><dd>Prosjek za januar–decembar 2025. prema opštini prebivališta zaposlenih, u dinarima. <a href="https://publikacije.stat.gov.rs/G2026/HtmlL/G20261050.html">Zarade, tabela 4</a>.</dd></div>
+              <div><dt>Prosječna neto zarada · RZS</dt><dd>Prosjek za januar–decembar 2025. prema opštini prebivališta zaposlenih. Izvorni iznosi su u dinarima (<a href="https://publikacije.stat.gov.rs/G2026/HtmlL/G20261050.html">RZS, tabela 4</a>); prikaz u eurima je približan, po prosječnom kursu za 2025: 1 EUR = 117,2026 RSD (<a href="https://www.nbs.rs/export/sites/NBS_site/documents-eng/publikacije/sb/sb_03_26.pdf">NBS, statistički bilten</a>). XLSX zadržava izvorne dinarske iznose.</dd></div>
               <div><dt>Starost i obrazovanje · Popis 2022</dt><dd>Udio mladih 15–29 prema <a href="https://publikacije.stat.gov.rs/G2024/PdfE/G202413051.pdf">RZS podacima o starosti</a>. Udio višeg ili visokog obrazovanja izvan Beograda prenosi <a href="https://stanjesrbije.rs/pokazatelj/degree/">Stanje Srbije</a> (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>), a za Beograd je izračunat iz <a href="https://popis2022.stat.gov.rs/popisni-podaci-eksel-tabele/">opštinskih tabela RZS-a</a>.</dd></div>
               <div><dt>Površine i granice</dt><dd>Beogradske površine: <a href="https://publikacije.stat.gov.rs/G2025/pdf/G20252058.pdf">RZS godišnjak, tabela 20.1</a>. Osnovne granice 145 jedinica: <a href="https://www.geoboundaries.org/api/current/gbOpen/SRB/ADM2/">geoBoundaries SRB ADM2</a> (© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>, <a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a>). Beogradske i kosovske opštinske granice: <a href="https://www.rik.parlament.gov.rs/542645/rezultati/">RIK mapa</a>. Osnovni obris Kosova: <a href="https://gisco-services.ec.europa.eu/distribution/v2/nuts/nuts-2024-files.html">Eurostat GISCO</a> (© EuroGeographics © UN-FAO © Turkstat).</dd></div>
             </dl>

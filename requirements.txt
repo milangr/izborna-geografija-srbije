@@ -1,0 +1,4 @@
+# Optional data/geometry/image generation tools; not needed to view the site.
+Pillow==11.0.0
+numpy==2.0.2
+shapely==2.0.7

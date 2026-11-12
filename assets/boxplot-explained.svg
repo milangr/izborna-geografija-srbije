@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="154" viewBox="0 0 560 154" role="img" aria-labelledby="title description">
+  <title id="title">Kako čitati box plot</title>
+  <desc id="description">Brkovi idu do minimuma ili maksimuma ako su unutar granica 1,5 puta interkvartilnog raspona; inače staju na tim granicama. Vrijednosti izvan brkova ostaju prikazane kao kružići. Kutija obuhvata srednju polovinu vrijednosti, od prvog do trećeg kvartila. Crta je medijana, romb prosjek, a kružić opština ili grad. Veličina kružića prati izabranu mjeru.</desc>
+  <style>
+    text { font: 12px system-ui, sans-serif; fill: #243d54; }
+    .lead { stroke: #8298aa; stroke-width: 1; fill: none; }
+    .whisker { stroke: #34495e; stroke-width: 2; }
+  </style>
+  <text x="2" y="14" font-weight="700">Kako čitati box plot</text>
+  <g class="lead">
+    <path d="M 108 30 H 235"/>
+    <path d="M 132 57 H 215"/>
+    <path d="M 75 81 H 215"/>
+    <path d="M 124 108 H 215"/>
+    <path d="M 104 133 H 235"/>
+    <path d="M 275 53 H 333"/>
+    <path d="M 253 72 H 333"/>
+    <path d="M 310 104 H 333"/>
+  </g>
+  <text x="2" y="34">Gornji brk</text>
+  <text x="2" y="61">Treći kvartil (Q3)</text>
+  <text x="2" y="85">Medijana</text>
+  <text x="2" y="112">Prvi kvartil (Q1)</text>
+  <text x="2" y="137">Donji brk</text>
+  <g class="whisker">
+    <path d="M 245 28 V 132"/>
+    <path d="M 232 28 H 258 M 232 132 H 258"/>
+  </g>
+  <rect x="215" y="53" width="60" height="55" fill="#dce9f6" stroke="#3d729b" stroke-width="2"/>
+  <path d="M 215 81 H 275" stroke="#172b41" stroke-width="3"/>
+  <path d="M 245 64 L 253 72 L 245 80 L 237 72 Z" fill="white" stroke="#172b41" stroke-width="2"/>
+  <circle cx="307" cy="104" r="7" fill="#629bca" stroke="white" stroke-width="1.5"/>
+  <text x="340" y="34">Brkovi: najviše 1,5 × IQR</text>
+  <text x="340" y="56">Kutija: srednjih 50 % vrijednosti</text>
+  <text x="340" y="76">Romb: prosjek</text>
+  <text x="340" y="108">Tačka: opština ili grad</text>
+  <text x="340" y="127">X položaj i veličina:</text>
+  <text x="340" y="142">izabrana mjera</text>
+</svg>

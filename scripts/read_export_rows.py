@@ -2,7 +2,7 @@
 
 import json
 
-from build_export_xlsx import COLUMNS, REGIONS, read_js_array
+from export_schema import COLUMNS, REGIONS, read_js_array
 
 
 data = [entry for entry in read_js_array("data/data.js") if entry["name"] != "Beograd"]
@@ -58,6 +58,9 @@ for key, _, kind in COLUMNS[1:]:
     total_row.append(value)
 rows.append(total_row)
 
-if len(rows) != 187 or any(len(row) != 21 for row in rows):
-    raise ValueError("Unexpected export table shape")
+EXPECTED_UNIT_COUNT = 185
+if len(data) != EXPECTED_UNIT_COUNT:
+    raise ValueError(f"Unexpected election coverage: {len(data)} units, expected {EXPECTED_UNIT_COUNT}")
+if any(len(row) != len(COLUMNS) + 1 for row in rows):
+    raise ValueError("Unexpected export column count")
 print(json.dumps(rows, ensure_ascii=False, allow_nan=False))

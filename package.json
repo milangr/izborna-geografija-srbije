@@ -1,0 +1,11 @@
+{
+  "name": "izborna-geografija-srbije",
+  "private": true,
+  "engines": {"node": ">=22"},
+  "scripts": {
+    "test": "node scripts/check.mjs",
+    "test:browser": "node tests/browser.mjs",
+    "test:all": "npm test && npm run test:browser",
+    "build:xlsx": "node scripts/build_export_xlsx.mjs"
+  }
+}
