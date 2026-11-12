@@ -251,7 +251,11 @@
       highlighted?.classList.add('is-selected');
       if (highlighted) marks.append(highlighted);
       showScatterValues(entry);
-      if (redraw) draw();
+      if (redraw) {
+        draw();
+        if (highlighted && !highlighted.classList.contains('is-filtered'))
+          viewport.revealPoint(highlighted.cx.baseVal.value, highlighted.cy.baseVal.value);
+      }
     }
 
     function showScatterValues(entry) {
@@ -441,10 +445,13 @@
         (colorControl.value === 'region' || Number.isFinite(entry[colorControl.value]));
     }
     function applyFilter() {
-      viewport.resetView();
+      let visibilityChanged = false;
       for (const [id, dot] of points) {
-        dot.classList.toggle('is-filtered', !isChartVisible(id) || !hasPlotValue(byId.get(id)));
+        const filtered = !isChartVisible(id) || !hasPlotValue(byId.get(id));
+        if (dot.classList.contains('is-filtered') !== filtered) visibilityChanged = true;
+        dot.classList.toggle('is-filtered', filtered);
       }
+      if (visibilityChanged) viewport.resetView();
       draw();
       hideScatterTooltip();
     }

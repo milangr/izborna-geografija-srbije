@@ -36,6 +36,18 @@
       draw();
     }
 
+    function revealPoint(x, y) {
+      const plot = getPlot();
+      if (!plot || !Number.isFinite(x) || !Number.isFinite(y)) return;
+      const outsideX = x < plot.left || x > plot.right;
+      const outsideY = y < plot.top || y > plot.bottom;
+      if (!outsideX && !outsideY) return;
+      moveChart(chartLeft + (outsideX ? (x - (plot.left + plot.right) / 2) /
+        ((plot.right - plot.left) * chartScaleX) : 0),
+      chartTop + (outsideY ? (y - (plot.top + plot.bottom) / 2) /
+        ((plot.bottom - plot.top) * chartScaleY) : 0));
+    }
+
     svg.addEventListener('touchstart', event => {
       if (event.touches.length !== 2 || !getPlot()) return;
       const pair = touchPair(event.touches);
@@ -148,7 +160,7 @@
       chartDrag = null;
       return true;
     }
-    return {resetView, plotPoint, dragChart, consumeClick,
+    return {resetView, revealPoint, plotPoint, dragChart, consumeClick,
       get chartScaleX() { return chartScaleX; }, get chartScaleY() { return chartScaleY; },
       get chartLeft() { return chartLeft; }, get chartTop() { return chartTop; }};
   };

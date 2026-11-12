@@ -132,6 +132,32 @@ export async function runScenarios({evaluate, cdp, reload}) {
   await check('table to visuals link',`(()=>{qa.change('filter-link-mode','table');document.querySelector('#municipality-table tbody input[type=checkbox]').click();return qa.points()===1})()`);
   await evaluate(`qa.get('clear-table-filters').click();qa.change('filter-link-mode','none');`);
   await check('XY range zoom',`(()=>{let c=qa.get('scatter-x-min');c.value=20;c.dispatchEvent(new Event('input',{bubbles:true}));return +c.value===20})()`);
+  await check('XY selection preserves zoom', `(() => {
+    const clip = document.querySelector('#scatter-plot-clip rect');
+    const left = +clip.getAttribute('x'), right = left + +clip.getAttribute('width');
+    const dot = [...document.querySelectorAll('.scatter-mark:not(.is-filtered)')]
+      .find(dot => +dot.getAttribute('cx') > left && +dot.getAttribute('cx') < right);
+    if (!dot) return false;
+    dot.dispatchEvent(new MouseEvent('click', {bubbles: true}));
+    if (+qa.get('scatter-x-min').value !== 20) return false;
+    qa.change('filter-link-mode', 'visual');
+    dot.dispatchEvent(new MouseEvent('click', {bubbles: true}));
+    const preserved = +qa.get('scatter-x-min').value === 20;
+    qa.change('filter-link-mode', 'none');
+    return preserved;
+  })()`);
+  await check('XY follows a map selection without changing zoom', `(() => {
+    const clip = document.querySelector('#scatter-plot-clip rect');
+    const left = +clip.getAttribute('x'), right = left + +clip.getAttribute('width');
+    const dot = [...document.querySelectorAll('.scatter-mark:not(.is-filtered)')]
+      .find(dot => qa.get(dot.dataset.unitId) && +dot.getAttribute('cx') < left);
+    if (!dot) return false;
+    const before = +qa.get('scatter-x-max').value - +qa.get('scatter-x-min').value;
+    qa.get(dot.dataset.unitId).dispatchEvent(new MouseEvent('click', {bubbles: true}));
+    const after = +qa.get('scatter-x-max').value - +qa.get('scatter-x-min').value;
+    const x = +dot.getAttribute('cx');
+    return before === after && x >= left && x <= right;
+  })()`);
   await check('XY metric resets zoom',`(()=>{qa.change('scatter-x','population');return +qa.get('scatter-x-min').value===0&&+qa.get('scatter-x-max').value===100})()`);
   await check('regional keyboard zoom and reset',`(()=>{let h=document.querySelector('[data-bound=end]');h.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));let zoom=h.getAttribute('aria-valuenow')==='99';document.querySelector('.region-box-reset-zoom').click();return zoom&&h.getAttribute('aria-valuenow')==='100'})()`);
   await check('legend filter',`(()=>{let cell=document.querySelector('.map-numeric-legend td[data-filter-kind=cell]');cell.click();return qa.points()<185})()`);
