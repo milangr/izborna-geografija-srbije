@@ -60,7 +60,7 @@
         const span = 5;
         const min = .5 + start * span;
         return {min, max: min + span / scale, step: 1,
-          format: value => Math.round(value) === 5 ? 'V' : developmentLabels[Math.round(value)] || '—'};
+          format: value => Math.round(value) === 5 ? 'V' : developmentLabels[Math.round(value)] || '-'};
       }
       const values = plotData.filter(entry => isChartVisible(entry.id) && hasPlotValue(entry))
         .map(entry => entry[key]).sort((a, b) => a - b);
@@ -200,13 +200,6 @@
         text(position + (position > (left + right) / 2 ? -5 : 5), top + 12,
           xyReferenceLabel(xKey) + ': ' + metricValue({[xKey]: averageX}, xKey),
           {'text-anchor': position > (left + right) / 2 ? 'end' : 'start', class: 'scatter-average-label'});
-      }
-      const averageY = xyReferences[yKey];
-      if (Number.isFinite(averageY) && averageY >= yAxis.min && averageY <= yAxis.max) {
-        const position = y(averageY);
-        line(left, position, right, position, 'scatter-average');
-        text(right - 5, Math.max(top + 11, position - 5), xyReferenceLabel(yKey) + ': ' + metricValue({[yKey]: averageY}, yKey),
-          {'text-anchor': 'end', class: 'scatter-average-label'});
       }
       text((left + right) / 2, h - 12, metricLabel(xKey) + (xAxis.unit ? ` (${xAxis.unit})` : ''), {'text-anchor': 'middle', class: 'axis-title'});
       const midY = (top + bottom) / 2;
@@ -383,7 +376,7 @@
       const xKey = xControl.value, yKey = yControl.value;
       get('scatter-description').textContent = 'X osa: ' + metricLabel(xKey) + '. Y osa: ' + metricLabel(yKey) +
         '. Veličina: ' + metricLabel(sizeKey) + '. Boja: ' + (colorKey === 'region' ? 'regija' : metricLabel(colorKey)) +
-        (metrics[yKey].categorical ? '.' : '. Horizontalna referentna linija: ' + xyReferenceLabel(yKey) + ' — ' + metricValue({[yKey]: xyReferences[yKey]}, yKey) + '.') +
+        '.' +
         ' Izaberi krug za tačne vrijednosti opštine, Inostranstva ili Kaznenih zavoda.';
       tip.hidden = true;
       select(currentEntry, false);

@@ -2,9 +2,11 @@
   'use strict';
   window.initializeViewPreferences = ({preferenceKey, defaultMetrics, regions, selectedRegions, regionPicker, selectAllRegions, filterLinkMode, refreshRegions, renderTable}) => {
     const get = id => document.getElementById(id);
+    const introDetails = get('page-intro-details');
     let savedPreferences = null;
     try { savedPreferences = JSON.parse(localStorage.getItem(preferenceKey)); } catch {}
     if (savedPreferences && typeof savedPreferences === 'object') {
+      if (typeof savedPreferences.introOpen === 'boolean') introDetails.open = savedPreferences.introOpen;
       for (const id of Object.keys(defaultMetrics)) {
         const control = get(id);
         const value = savedPreferences.metrics?.[id];
@@ -30,6 +32,7 @@
         localStorage.setItem(preferenceKey, JSON.stringify({
           metrics: Object.fromEntries(Object.keys(defaultMetrics).map(id => [id, get(id).value])),
           regions: [...selectedRegions], syncTable: filterLinkMode.value === 'table', syncVisual: filterLinkMode.value === 'visual',
+          introOpen: introDetails.open,
         }));
       } catch {
         get('view-preferences-note').textContent = 'Preglednik ne dozvoljava čuvanje izbora za narednu posjetu.';
@@ -40,6 +43,7 @@
     regionPicker.addEventListener('click', event => { if (event.target.closest('.region-only')) savePreferences(); });
     selectAllRegions.addEventListener('click', savePreferences);
     filterLinkMode.addEventListener('change', savePreferences);
+    introDetails.addEventListener('toggle', savePreferences);
     get('reset-view-preferences').addEventListener('click', () => {
       try { localStorage.removeItem(preferenceKey); } catch {}
       location.reload();

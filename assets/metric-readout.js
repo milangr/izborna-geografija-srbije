@@ -21,7 +21,7 @@
         const visual = get(id + '-visual');
         const value = document.createElement('strong');
         value.textContent = entry ? (key === 'region' ? entry.summaryLabel || regions[entry.region]
-          : regionSummary && metrics[key].categorical ? 'po grupama' : metricValue(entry, key)) : '—';
+          : regionSummary && metrics[key].categorical ? 'po grupama' : metricValue(entry, key)) : '-';
         result.replaceChildren(value);
         visual.replaceChildren();
         if (key !== 'region') appendMiniBox(result, visual, key, entry, id.startsWith('scatter-'), regionSummary);

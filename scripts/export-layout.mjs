@@ -16,7 +16,7 @@ export function createExportLayout(rows) {
     return index;
   };
   const listIndex = indexFor('Glasovi Lista3');
-  const snsIndex = indexFor('Glasovi SNS');
+  const snsIndex = indexFor('Glasovi Lista1');
   const attendedIndex = indexFor('Birači koji su izašli');
   const differenceColumn = column(indexFor('Razlika na 1000 izašlih'));
   const list = column(listIndex), sns = column(snsIndex), attended = column(attendedIndex);

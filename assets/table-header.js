@@ -159,7 +159,7 @@
       label.textContent = column.label;
       button.append(label);
       const headingLines = column.key === 'voteDifference'
-        ? ['Razlika', 'glasova', '(Lista3 − SNS)'] : null;
+        ? ['Razlika', 'glasova', '(Lista3 - Lista1)'] : null;
       if (headingLines) {
         button.classList.add('is-three-line');
         button.setAttribute('aria-label', column.label);
@@ -250,7 +250,7 @@
           const input = document.createElement('input');
           input.type = 'number';
           input.step = 'any';
-          input.setAttribute('aria-label', column.label + ' — ' + bound);
+          input.setAttribute('aria-label', column.label + ' - ' + bound);
           input.dataset.bound = bound === 'Min' ? 'min' : 'max';
           input.dataset.column = column.key;
           label.append(input);

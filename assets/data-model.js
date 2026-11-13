@@ -10,6 +10,12 @@
     const rsdPerEur2025 = 117.2026;
     const developmentLabels = {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V'};
     for (const entry of tableData) {
+      const censusAge = sources.ageGroups2022?.[entry.name];
+      entry.censusPopulation2022 = censusAge?.total ?? null;
+      for (const [field, group] of Object.entries({age0_14Share: 'age0_14', youthShare: 'age15_29',
+        age30_44Share: 'age30_44', age45_64Share: 'age45_64', age65PlusShare: 'age65Plus'})) {
+        entry[field] = censusAge ? 100 * censusAge[group] / censusAge.total : null;
+      }
       const socioeconomic = sources.socioeconomicData?.[entry.name];
       entry.developmentGroup2014 = socioeconomic?.developmentGroup2014 ?? null;
       entry.averageNetWage2025Rsd = socioeconomic?.averageNetWage2025 ?? null;

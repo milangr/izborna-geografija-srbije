@@ -17,9 +17,9 @@
         breaks: [750, 850], format: wageEur},
       votes: {label: 'Udio Lista3 (%)', unit: '%', breaks: [35, 50], format: percent},
       listVotes: {label: 'Glasovi Lista3', breaks: [5000, 20000]},
-      snsShare: {label: 'Udio SNS (%)', unit: '%', breaks: [35, 50], format: percent},
-      snsVotes: {label: 'Glasovi SNS', breaks: [5000, 20000]},
-      voteDifference: {label: 'Razlika glasova (Lista3 − SNS)', breaks: [0, 5000], format: signedWholeNumber.format},
+      snsShare: {label: 'Udio Lista1 (%)', unit: '%', breaks: [35, 50], format: percent},
+      snsVotes: {label: 'Glasovi Lista1', breaks: [5000, 20000]},
+      voteDifference: {label: 'Razlika glasova (Lista3 - Lista1)', breaks: [0, 5000], format: signedWholeNumber.format},
       differencePer1000: {label: 'Razlika na 1.000 izašlih', normalized: true, breaks: [0, 100], format: signedDecimal.format},
       validVotes: {label: 'Važeći glasovi', breaks: [10000, 40000]},
       invalidShare: {label: 'Nevažeći listići (%)', unit: '%', breaks: [1.2, 1.6], format: percent},
@@ -30,12 +30,15 @@
       population: {label: 'Broj stanovnika', breaks: [20000, 75000]},
       density: {label: 'Gustina', unit: 'stan./km²', breaks: [60, 150], format: densityText},
       areaKm2: {label: 'Površina', unit: 'km²', breaks: [300, 700], format: value => number.format(value) + ' km²'},
-      youthShare: {label: 'Mladi 15–29 (%)', unit: '%', breaks: [14.5, 15.5], format: percent},
-      age65PlusShare: {label: 'Stanovnici 65+ (%)', unit: '%', breaks: [24, 26.5], format: percent},
+      age0_14Share: {label: 'Uzrast 0-14 (%)', unit: '%', breaks: [13, 15], format: percent},
+      youthShare: {label: 'Uzrast 15-29 (%)', unit: '%', breaks: [14.5, 15.5], format: percent},
+      age30_44Share: {label: 'Uzrast 30-44 (%)', unit: '%', breaks: [18, 21], format: percent},
+      age45_64Share: {label: 'Uzrast 45-64 (%)', unit: '%', breaks: [27, 30], format: percent},
+      age65PlusShare: {label: 'Uzrast 65+ (%)', unit: '%', breaks: [20, 25], format: percent},
       higherEducationShare: {label: 'Više/visoko obrazovani (%)', unit: '%', breaks: [11, 15], format: percent},
     };
     const metricValue = (entry, key) => Number.isFinite(entry[key])
-      ? (metrics[key].format || wholeNumber.format)(entry[key]) : '—';
+      ? (metrics[key].format || wholeNumber.format)(entry[key]) : '-';
     const summedMetrics = new Set(['listVotes', 'snsVotes', 'voteDifference', 'validVotes',
       'votersAttended', 'registeredVoters', 'stations', 'population', 'areaKm2']);
     const signed = new Intl.NumberFormat('sr-Latn-RS', {maximumFractionDigits: 1, signDisplay: 'exceptZero'});
@@ -44,6 +47,7 @@
       return unit && !label.endsWith('(' + unit + ')') ? label + ' (' + unit + ')' : label;
     };
     const mapLegendLabel = (key, label = metricLabel(key)) => {
+      if (label.endsWith(' (hilj.)')) return label.replace(/ \(hilj\.\)$/, '\n(hilj.)');
       const breaks = [...label.matchAll(/ /g)].map(match => match.index);
       const split = breaks.reduce((best, index) => {
         const longest = Math.max(index, label.length - index - 1);
@@ -85,13 +89,13 @@
       name: ['Naziv opštine ili grada za koji su prikazani rezultati.\nBeograd je razložen na 17 gradskih opština.', ['rik']],
       region: ['Statistička regija kojoj pripada jedinica; „Ostalo” označava glasanje bez opštinske geometrije.', ['rik']],
       district: ['Upravni okrug opštine ili grada.\nZa Inostranstvo i Kaznene zavode prikazan je naziv posebne kategorije.', ['rik']],
-      developmentGroup2014: ['Zvanična klasifikacija iz 2014: I iznad prosjeka; II 80–100%; III 60–80%; IV ispod 60%.\nV je devastirana podgrupa IV, ispod 50%.\nSvih 17 beogradskih opština ima grupu Grada Beograda.', ['development']],
-      differencePer1000: ['1000 × (glasovi Lista3 − glasovi SNS) / broj izašlih.\nPozitivno znači prednost Liste3, negativno prednost SNS-a.\nZbirna vrijednost računa se iz ukupnih glasova i izašlih.', ['rik']],
-      voteDifference: ['Glasovi Lista3 minus glasovi SNS.\nPozitivna traka ide udesno, negativna ulijevo.', ['rik']],
+      developmentGroup2014: ['Zvanična klasifikacija iz 2014: I iznad prosjeka; II 80-100%; III 60-80%; IV ispod 60%.\nV je devastirana podgrupa IV, ispod 50%.\nSvih 17 beogradskih opština ima grupu Grada Beograda.', ['development']],
+      differencePer1000: ['1000 × (glasovi Lista3 - glasovi Lista1) / broj izašlih.\nPozitivno znači prednost Liste3, negativno prednost Liste1.\nZbirna vrijednost računa se iz ukupnih glasova i izašlih.', ['rik']],
+      voteDifference: ['Glasovi Lista3 minus glasovi Lista1.\nPozitivna traka ide udesno, negativna ulijevo.', ['rik']],
       votes: ['Udio glasova za Lista3 među važećim glasovima.\nTraka prikazuje udio na skali od 0 do 100%.', ['rik']],
       listVotes: ['Broj glasova za Lista3.', ['rik']],
-      snsShare: ['Udio glasova za SNS među važećim glasovima.', ['rik']],
-      snsVotes: ['Broj glasova za SNS.', ['rik']],
+      snsShare: ['Udio glasova za Lista1 među važećim glasovima.', ['rik']],
+      snsVotes: ['Broj glasova za Lista1.', ['rik']],
       validVotes: ['Broj važećih glasova.', ['rik']],
       invalidShare: ['Broj nevažećih listića podijeljen brojem listića pronađenih u kutijama.', ['rik']],
       turnout: ['Broj birača koji su izašli podijeljen brojem upisanih birača.', ['rik']],
@@ -101,8 +105,11 @@
       population: ['Godišnji prosjek procijenjenog broja stanovnika u 2025.', ['population']],
       density: ['Procijenjeni broj stanovnika 2025. podijeljen površinom opštine u km².', ['population', 'boundaries', 'belgradeArea']],
       areaKm2: ['Površina u km²: za beogradske opštine prema RZS-u, za ostale iz pojednostavljenih granica.', ['belgradeArea', 'boundaries']],
-      youthShare: ['Udio stanovnika od 15 do 29 godina prema Popisu 2022; zbir grupa 15–19, 20–24 i 25–29.', ['ages']],
-      age65PlusShare: ['Udio stanovnika od 65 godina naviše u procjeni stanovništva za 2025.', ['population']],
+      age0_14Share: ['Udio stanovnika od 0 do 14 godina prema Popisu 2022; zbir grupa 0-4, 5-9 i 10-14.', ['ages']],
+      youthShare: ['Udio stanovnika od 15 do 29 godina prema Popisu 2022; zbir grupa 15-19, 20-24 i 25-29.', ['ages']],
+      age30_44Share: ['Udio stanovnika od 30 do 44 godine prema Popisu 2022; zbir grupa 30-34, 35-39 i 40-44.', ['ages']],
+      age45_64Share: ['Udio stanovnika od 45 do 64 godine prema Popisu 2022; zbir grupa 45-49, 50-54, 55-59 i 60-64.', ['ages']],
+      age65PlusShare: ['Udio stanovnika od 65 godina naviše prema Popisu 2022.', ['ages']],
       higherEducationShare: ['Udio stanovnika od 15 godina naviše s višim ili visokim obrazovanjem prema Popisu 2022.', ['education', 'educationShare']],
       averageNetWage2025: ['Prosječna mjesečna neto zarada u 2025. prema prebivalištu zaposlenih.\nPribližan prikaz u EUR: izvorni RSD iznos podijeljen kursom 117,2026.\nFilter koristi EUR.', ['wages', 'exchangeRate']],
     };

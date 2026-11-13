@@ -7,10 +7,10 @@
     const populationEntries = entries.filter(entry => Number.isFinite(entry.population) && Number.isFinite(entry.areaKm2));
     const population = populationEntries.reduce((total, entry) => total + entry.population, 0);
     const area = populationEntries.reduce((total, entry) => total + entry.areaKm2, 0);
-    const populationWeighted = key => {
-      const available = entries.filter(entry => Number.isFinite(entry.population) && Number.isFinite(entry[key]));
-      const weight = available.reduce((total, entry) => total + entry.population, 0);
-      return weight ? available.reduce((total, entry) => total + entry.population * entry[key], 0) / weight : null;
+    const populationWeighted = (key, weightKey = 'population') => {
+      const available = entries.filter(entry => Number.isFinite(entry[weightKey]) && Number.isFinite(entry[key]));
+      const weight = available.reduce((total, entry) => total + entry[weightKey], 0);
+      return weight ? available.reduce((total, entry) => total + entry[weightKey] * entry[key], 0) / weight : null;
     };
     const municipalAverage = key => {
       const values = entries.map(entry => entry[key]).filter(Number.isFinite);
@@ -27,9 +27,12 @@
       votersAttended: sum('votersAttended'), registeredVoters: sum('registeredVoters'),
       stations: sum('stations'), population: sumAvailable('population'),
       areaKm2: sumAvailable('areaKm2'), density: area ? population / area : null,
-      age65PlusShare: populationWeighted('age65PlusShare'),
-      youthShare: municipalAverage('youthShare'),
-      higherEducationShare: municipalAverage('higherEducationShare'),
+      age0_14Share: populationWeighted('age0_14Share', 'censusPopulation2022'),
+      youthShare: populationWeighted('youthShare', 'censusPopulation2022'),
+      age30_44Share: populationWeighted('age30_44Share', 'censusPopulation2022'),
+      age45_64Share: populationWeighted('age45_64Share', 'censusPopulation2022'),
+      age65PlusShare: populationWeighted('age65PlusShare', 'censusPopulation2022'),
+      higherEducationShare: populationWeighted('higherEducationShare'),
       averageNetWage2025: municipalAverage('averageNetWage2025'),
     };
   }

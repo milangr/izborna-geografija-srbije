@@ -16,7 +16,7 @@ REGIONS = {
 }
 
 # Base export columns. The JS generator adds development, wages and normalized difference.
-# Percent values in site data are 0–100;
+# Percent values in site data are 0-100;
 # XLSX stores them as fractions so Excel can calculate with them normally.
 COLUMNS = [
     ("name", "Opština ili grad", "text"),
@@ -24,9 +24,9 @@ COLUMNS = [
     ("district", "Okrug", "text"),
     ("votes", "Udio Lista3 (%)", "percent"),
     ("listVotes", "Glasovi Lista3", "integer"),
-    ("snsShare", "Udio SNS (%)", "percent"),
-    ("snsVotes", "Glasovi SNS", "integer"),
-    ("voteDifference", "Razlika glasova (Lista3 − SNS)", "signed_integer"),
+    ("snsShare", "Udio Lista1 (%)", "percent"),
+    ("snsVotes", "Glasovi Lista1", "integer"),
+    ("voteDifference", "Razlika glasova (Lista3 - Lista1)", "signed_integer"),
     ("validVotes", "Važeći glasovi", "integer"),
     ("invalidShare", "Nevažeći listići (%)", "percent"),
     ("turnout", "Izlaznost (%)", "percent"),
@@ -36,8 +36,11 @@ COLUMNS = [
     ("population", "Stanovništvo (2025)", "integer"),
     ("density", "Gustina (2025) (stan./km²)", "decimal"),
     ("areaKm2", "Površina (km²)", "decimal"),
-    ("youthShare", "Mladi 15–29 (2022) (%)", "percent"),
-    ("age65PlusShare", "Uzrast 65+ (2025) (%)", "percent"),
+    ("age0_14Share", "Uzrast 0-14 (%)", "percent"),
+    ("youthShare", "Uzrast 15-29 (%)", "percent"),
+    ("age30_44Share", "Uzrast 30-44 (%)", "percent"),
+    ("age45_64Share", "Uzrast 45-64 (%)", "percent"),
+    ("age65PlusShare", "Uzrast 65+ (%)", "percent"),
     ("higherEducationShare", "Više ili visoko obrazovanje (2022) (%)", "percent"),
 ]
 

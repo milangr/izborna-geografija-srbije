@@ -340,11 +340,11 @@
           totalLabel.textContent = 'Ukupno:';
           const totalValue = document.createElement('span');
           totalValue.className = 'region-box-total';
-          totalValue.textContent = totalValues(members)[key] ?? '—';
+          totalValue.textContent = totalValues(members)[key] ?? '-';
           totalValue.title = 'Obračun kao u zbirnom redu tabele';
           stats.append(totalLabel, totalValue);
           const values = [medianValue, meanValue, totalValue];
-          const parts = values.map(value => value.textContent.match(/^([+−-]?[\d.\s]+)(,\d+)?(.*)$/));
+          const parts = values.map(value => value.textContent.match(/^([+-]?[\d.\s]+)(,\d+)?(.*)$/));
           stats.style.setProperty('--fraction-width', Math.max(...parts.map(part => part?.[2]?.length || 0)) + 'ch');
           stats.style.setProperty('--suffix-width', Math.max(...parts.map(part => part?.[3]?.length || 0)) + 'ch');
           values.forEach((value, index) => {
@@ -475,7 +475,7 @@
             const value = document.createElement('span');
             value.className = 'region-box-total';
             value.style.textAlign = 'right';
-            value.textContent = totalValues(members)[key] ?? '—';
+            value.textContent = totalValues(members)[key] ?? '-';
             stats.append(label, value);
             header.append(stats);
             svg.querySelectorAll('.region-box-gridline').forEach(line => line.remove());
@@ -511,7 +511,7 @@
           title: xMarkerTitle, format: formatX});
         const xTotal = document.createElement('div');
         xTotal.className = 'region-box-x-total';
-        xTotal.textContent = totalValues(members)[sizeKey] ?? '—';
+        xTotal.textContent = totalValues(members)[sizeKey] ?? '-';
         xTotal.title = `${label} · ${metricLabel(sizeKey)} · ukupno prema zbirnom redu tabele`;
         column.append(xTotal);
         fragment.append(column);
@@ -523,7 +523,7 @@
       for (const [selector, metric] of [['.region-box-total', key], ['.region-bars-column .region-box-x-total', sizeKey]]) {
         const cells = [...grid.querySelectorAll(selector)];
         const values = cells.map(cell => {
-          const text = cell.textContent.replace(/\./g, '').replace(',', '.').replace(/[^\d.+−-]/g, '').replace('−', '-');
+          const text = cell.textContent.replace(/\./g, '').replace(',', '.').replace(/[^\d.+-]/g, '');
           return text && text !== '-' ? Number(text) : NaN;
         });
         const available = values.filter(Number.isFinite);

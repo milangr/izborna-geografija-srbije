@@ -1,6 +1,7 @@
 """Prepare the downloadable table matrix from the site's source data."""
 
 import json
+from pathlib import Path
 
 from export_schema import COLUMNS, REGIONS, read_js_array
 
@@ -13,7 +14,16 @@ data += [entry for entry in kosovo if not entry.get("mapped")]
 data += read_js_array("data/special-results.js")
 data.sort(key=lambda entry: entry["name"].casefold())
 
+age_source = (Path(__file__).resolve().parents[1] / "data/age-groups-2022.js").read_text(encoding="utf-8")
+age_groups = json.loads(age_source[age_source.index("{"):age_source.rindex("}") + 1])
+age_fields = {"age0_14Share": "age0_14", "youthShare": "age15_29", "age30_44Share": "age30_44",
+              "age45_64Share": "age45_64", "age65PlusShare": "age65Plus"}
+
 for entry in data:
+    census = age_groups.get(entry["name"])
+    entry["censusPopulation2022"] = census["total"] if census else None
+    for field, group in age_fields.items():
+        entry[field] = 100 * census[group] / census["total"] if census else None
     valid = entry.get("validVotes")
     sns = entry.get("snsVotes")
     entry["snsShare"] = 100 * sns / valid if sns is not None and valid else None
@@ -50,6 +60,11 @@ totals["voteDifference"] = totals["listVotes"] - totals["snsVotes"]
 totals["invalidShare"] = 100 * total("invalidVotes") / ballots if ballots else None
 totals["turnout"] = 100 * totals["votersAttended"] / registered if registered else None
 totals["density"] = totals["population"] / totals["areaKm2"] if totals["areaKm2"] else None
+for key in (*age_fields, "higherEducationShare"):
+    weight_key = "population" if key == "higherEducationShare" else "censusPopulation2022"
+    available = [entry for entry in data if entry.get(weight_key) is not None and entry.get(key) is not None]
+    weight = sum(entry[weight_key] for entry in available)
+    totals[key] = sum(entry[weight_key] * entry[key] for entry in available) / weight if weight else None
 total_row = ["Σ", f"Ukupno ({len(data)})"]
 for key, _, kind in COLUMNS[1:]:
     value = totals.get(key)

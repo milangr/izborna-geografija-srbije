@@ -124,7 +124,7 @@
   const legendMetricLabel = key => legendScale(key).label;
   function rangeLabels(key) {
     const [low, high] = metrics[key].breaks.map(legendScale(key).format);
-    return ['< ' + low, low + '–' + high, '≥ ' + high];
+    return ['< ' + low, low + '-' + high, '≥ ' + high];
   }
   const mapBreaks = {};
   for (const key of Object.keys(metrics)) {
@@ -148,9 +148,9 @@
   const mapColorClass = (value, key) =>
     mapBreaks[key].reduce((level, boundary) => level + (value >= boundary), 0);
   const mapRangeLabels = key => {
-    if (key === 'differencePer1000') return ['< 0', '0–50', '≥ 50'];
+    if (key === 'differencePer1000') return ['< 0', '0-50', '≥ 50'];
     const breaks = mapBreaks[key].map(legendScale(key, mapBreaks[key]).format);
-    return ['< ' + breaks[0], breaks[0] + '–' + breaks[1], '≥ ' + breaks[1]];
+    return ['< ' + breaks[0], breaks[0] + '-' + breaks[1], '≥ ' + breaks[1]];
   };
   const mapDevelopmentGroup = code => code <= 2 ? 1 : code <= 4 ? 3 : 5;
   function metricSelect(id, defaultValue, includeRegions = false) {
@@ -220,7 +220,8 @@
     getVisibleRows: () => visibleRows, renderTable});
   const {headers, rangeFilters, filterButtons, selectAll, nameFilter, regionFilter,
     districtFilter, developmentFilter, columnVisibility, columnButton} = tableHeader;
-  selectionSummary = window.createSelectionSummary({panel: get('selection-summary'), columns, wholeNumber, totalValues,
+  selectionSummary = window.createSelectionSummary({panel: get('selection-summary'), columns, columnHelp,
+    sourceLinks, wholeNumber, totalValues, aggregateEntries: window.electionCalculations.aggregateEntries,
     getState: () => ({entry: selectedSpecial || byId.get(selected?.id),
       entries: tableData.filter(entry => isVisible(entry.id)), visibleColumns: columnVisibility.selected,
       scopeLabel: selectedRegions.size === 1 ? regions[[...selectedRegions][0]]
@@ -280,9 +281,11 @@
       listVotes: wholeNumber.format, snsVotes: wholeNumber.format,
       voteDifference: signedWholeNumber.format, differencePer1000: signedDecimal.format,
       areaKm2: number.format, votes: percent, snsShare: percent,
+      age0_14Share: percent, youthShare: percent, age30_44Share: percent,
+      age45_64Share: percent, age65PlusShare: percent, higherEducationShare: percent,
     };
     return Object.fromEntries(Object.entries(formatters).map(([key, format]) =>
-      [key, Number.isFinite(totals[key]) ? format(totals[key]) : '—']));
+      [key, Number.isFinite(totals[key]) ? format(totals[key]) : '-']));
   }
 
   function updateTableStatus() {

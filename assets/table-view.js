@@ -138,7 +138,7 @@
           value.textContent = format(entry[key]);
           bar.append(fill, value);
           cell.append(bar);
-        } else cell.textContent = entry[key] == null ? '—' : format(entry[key]);
+        } else cell.textContent = entry[key] == null ? '-' : format(entry[key]);
       }
       rows.append(row);
     }
@@ -177,7 +177,7 @@
       for (const {key} of columns.slice(1)) {
         const cell = row.insertCell();
         if (key === 'region' || key === 'district') cell.className = key === 'region' ? 'region-cell' : 'district-cell';
-        cell.textContent = totals[key] ?? '—';
+        cell.textContent = totals[key] ?? '-';
       }
     }
 

@@ -12,12 +12,12 @@ function load(files) {
   return context.window;
 }
 const plain = value => JSON.parse(JSON.stringify(value));
-const sourceFiles = ['data', 'beograd-results', 'kosovo-results', 'special-results', 'socioeconomic-data'].map(name => `data/${name}.js`);
+const sourceFiles = ['data', 'beograd-results', 'kosovo-results', 'special-results', 'socioeconomic-data', 'age-groups-2022'].map(name => `data/${name}.js`);
 
 test('export ranges and formulas follow the row count, including the total row', () => {
   for (const unitCount of [1, 185, 200]) {
     const rows = [
-      ['Name', 'Glasovi Lista3', 'Glasovi SNS', 'Birači koji su izašli', 'Razlika na 1000 izašlih'],
+      ['Name', 'Glasovi Lista3', 'Glasovi Lista1', 'Birači koji su izašli', 'Razlika na 1000 izašlih'],
       ...Array.from({length: unitCount}, (_, i) => [`Unit ${i}`, 30, 10, 100, null]),
       ['Total', 30 * unitCount, 10 * unitCount, 100 * unitCount, null],
     ];
@@ -57,6 +57,13 @@ test('model preserves source objects and creates all 185 unique rows', () => {
     assert.equal(row.voteDifference, row.listVotes - row.snsVotes);
     assert.equal(row.differencePer1000, row.votersAttended > 0 ? 1000 * (row.listVotes - row.snsVotes) / row.votersAttended : null);
   }
+  const censusRows = first.tableData.filter(row => Number.isFinite(row.censusPopulation2022));
+  assert.equal(censusRows.length, 161);
+  for (const row of censusRows) {
+    const sum = ['age0_14Share', 'youthShare', 'age30_44Share', 'age45_64Share', 'age65PlusShare']
+      .reduce((total, key) => total + row[key], 0);
+    assert.ok(Math.abs(sum - 100) < 1e-10, row.name);
+  }
 });
 
 test('filters distinguish unrestricted, empty, zero and missing values', () => {
@@ -92,6 +99,20 @@ test('aggregate vote shares use votes rather than an average of percentages', ()
   assert.equal(c.aggregateEntries([]).votes, null);
 });
 
+test('demographic totals use populations of municipalities with available shares', () => {
+  const {electionCalculations: c} = load(['assets/calculations.js']);
+  const total = c.aggregateEntries([
+    {population: 100, censusPopulation2022: 200, age0_14Share: 10, youthShare: 10, age65PlusShare: 20, higherEducationShare: 30},
+    {population: 300, censusPopulation2022: 200, age0_14Share: 30, youthShare: 20, age65PlusShare: 40, higherEducationShare: 50},
+    {population: 600, youthShare: null, age65PlusShare: null, higherEducationShare: null},
+  ]);
+  assert.equal(total.age0_14Share, 20);
+  assert.equal(total.youthShare, 15);
+  assert.equal(total.age65PlusShare, 30);
+  assert.equal(total.higherEducationShare, 45);
+  assert.equal(c.aggregateEntries([{population: 100, youthShare: null}]).youthShare, null);
+});
+
 test('formula validation rejects errors, missing results and numeric strings', () => {
   for (const actual of [undefined, null, NaN, Infinity, '#VALUE!', '12', false, '']) {
     assert.throws(() => assertFormulaResult(actual, 12, 2), /row 2/);
@@ -113,7 +134,13 @@ test('Python export and site agree on row coverage, vote totals and turnout', ()
   assert.ok(exported.every(row => row.length === exported[0].length));
   assert.deepEqual(exported.slice(1, -1).map(row => row[1]).sort(), [...rows].map(row => row.name).sort());
   const totals = sources.electionCalculations.aggregateEntries(rows);
-  for (const [header, key, divisor] of [['Glasovi Lista3', 'listVotes', 1], ['Glasovi SNS', 'snsVotes', 1], ['Izlaznost (%)', 'turnout', 100]]) {
+  for (const [header, key, divisor] of [['Glasovi Lista3', 'listVotes', 1], ['Glasovi Lista1', 'snsVotes', 1], ['Izlaznost (%)', 'turnout', 100]]) {
     assert.equal(exported.at(-1)[exported[0].indexOf(header)], totals[key] / divisor);
+  }
+  for (const [header, key] of [['Uzrast 0-14 (%)', 'age0_14Share'],
+    ['Uzrast 15-29 (%)', 'youthShare'], ['Uzrast 30-44 (%)', 'age30_44Share'],
+    ['Uzrast 45-64 (%)', 'age45_64Share'], ['Uzrast 65+ (%)', 'age65PlusShare'],
+    ['Više ili visoko obrazovanje (2022) (%)', 'higherEducationShare']]) {
+    assert.ok(Math.abs(exported.at(-1)[exported[0].indexOf(header)] - totals[key] / 100) < 1e-12);
   }
 });

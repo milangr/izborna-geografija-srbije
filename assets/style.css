@@ -112,7 +112,11 @@ body { margin: 0; }
 .region-box-point:hover, .region-box-point:focus, .region-box-point.is-hovered, .region-box-point.is-selected { fill-opacity: .9; stroke: #172b41; stroke-width: 1.5; }
 .region-box-point.is-selected { stroke-width: 2.5; }
 .region-box-empty { fill: #63758a; font-size: 11px; }
-.page-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; margin-bottom: 1rem; }
+.page-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: .5rem 1rem; margin-bottom: 1rem; }
+.page-header-copy { flex: 1 1 620px; min-width: 0; }
+.page-intro-details { margin-top: .45rem; }
+.page-intro-details summary { width: fit-content; color: #225c92; cursor: pointer; font-size: .82rem; font-weight: 700; }
+.page-intro { max-width: 78ch; margin: .45rem 0 0; color: var(--secondary); font-size: .88rem; line-height: 1.45; }
 .mobile-advice, .mobile-jumps { display: none; }
 .badge { background: #dce9f6; color: #244d73; font-size: .75rem; font-weight: 700; padding: .35rem .65rem; border-radius: 100px; text-decoration: none; }
 .badge:hover { text-decoration: underline; }
@@ -441,7 +445,9 @@ select { display: block; width: 100%; margin-top: .75rem; padding: .4rem .55rem;
 #municipality-table th.col-votes { min-width: 7rem; }
 #municipality-table th.col-snsShare { min-width: 7rem; }
 #municipality-table th.col-voteDifference { min-width: 7rem; }
-#municipality-table th.col-youthShare, #municipality-table th.col-age65PlusShare { min-width: 7rem; }
+#municipality-table th.col-age0_14Share, #municipality-table th.col-youthShare,
+#municipality-table th.col-age30_44Share, #municipality-table th.col-age45_64Share,
+#municipality-table th.col-age65PlusShare { min-width: 10rem; }
 #municipality-table th.col-higherEducationShare { min-width: 7rem; }
 #municipality-table .difference-bar { position: relative; display: block; min-width: 5.75rem; line-height: 1.35rem; isolation: isolate; }
 #municipality-table .difference-bar::before { position: absolute; top: 1px; bottom: 1px; left: 50%; width: 1px; background: #8ea3b7; content: ''; }
@@ -639,11 +645,17 @@ a { color: #225c92; }
   .selection-summary table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .75rem; }
   .selection-summary thead th:first-child { width: 48%; }
   .selection-summary tbody th { overflow-wrap: anywhere; }
+  .selection-summary-label { display: inline-block; max-width: 100%; cursor: help; }
+  .selection-summary-label:focus-visible { outline: 2px solid #216eb3; outline-offset: 2px; }
   .selection-summary th, .selection-summary td { padding: .5rem .65rem; border-bottom: 1px solid var(--line); }
   .selection-summary th { text-align: left; font-weight: 500; }
   .selection-summary thead th { position: sticky; top: 0; background: #edf4fb; font-weight: 700; }
   .selection-summary td, .selection-summary thead th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
   .selection-summary td { white-space: nowrap; font-weight: 650; }
+  .selection-summary-age-display { display: flex; align-items: center; gap: .35rem; }
+  .selection-summary-age-track { flex: 1 1 auto; min-width: 1.5rem; height: .55rem; overflow: hidden; border-radius: .3rem; background: #e3edf6; }
+  .selection-summary-age-bar { display: block; height: 100%; border-radius: inherit; background: #216eb3; }
+  .selection-summary-age-value { flex: 0 0 3rem; text-align: right; }
   .selection-summary tbody tr:nth-child(even) { background: #f7fafd; }
   .selection-summary-note { flex: none; margin: 0; padding: .65rem .9rem; color: var(--secondary); font-size: .7rem; border-top: 1px solid var(--line); }
 }
