@@ -362,6 +362,9 @@ select { display: block; width: 100%; margin-top: .75rem; padding: .4rem .55rem;
 .scatter-plot .axis-title { fill: var(--ink); font-weight: 650; }
 .scatter-grid { stroke: #dce5ee; stroke-width: 1; }
 .scatter-box-whisker { stroke: #b4bbc3; stroke-width: 1; }
+.scatter-box-hit { fill: transparent; pointer-events: all; cursor: help; }
+.scatter-box-tooltip { z-index: 65; }
+.scatter-box-tooltip > p { font-weight: 700; }
 .scatter-box-outlier { fill: white; stroke: #a55c27; stroke-width: 1.5; }
 .scatter-box-range { fill: #e6edf4; stroke: #8194a7; stroke-width: 1; }
 .scatter-box-median { stroke: #36485c; stroke-width: 2; }

@@ -40,6 +40,20 @@ export async function runScenarios({evaluate, cdp, reload}) {
     qa.change('scatter-x', 'developmentGroup2014');
     return xMedianOnly;
   })()`);
+  await check('XY Y box tooltip shows statistics in table rows', `(() => {
+    const hit = document.querySelector('.scatter-box-hit');
+    const rect = hit.getBoundingClientRect();
+    hit.dispatchEvent(new PointerEvent('pointermove', {bubbles: true, pointerType: 'mouse',
+      clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2}));
+    const tip = document.getElementById('scatter-box-tooltip');
+    const rows = [...tip.querySelectorAll('tbody tr')];
+    const correct = !tip.hidden && rows.length >= 9
+      && rows.map(row => row.querySelector('th')?.textContent).join('|').includes('Q1|Medijana|Prosjek|Q3')
+      && rows.every(row => row.querySelector('td')?.textContent)
+      && !document.querySelector('.scatter-box title');
+    document.querySelector('.scatter-plot').dispatchEvent(new PointerEvent('pointerleave'));
+    return correct && tip.hidden;
+  })()`);
   await check('map difference classes use zero and fifty', `(() => {
     const model = window.createElectionDataModel(window);
     const entries = [...model.byId.values()].filter(entry => Number.isFinite(entry.differencePer1000)

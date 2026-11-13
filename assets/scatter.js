@@ -10,6 +10,12 @@
     const stage = document.querySelector('.scatter-stage');
     const svg = stage.querySelector('svg');
     const tip = stage.querySelector('.map-tooltip');
+    const boxTip = document.createElement('div');
+    boxTip.id = 'scatter-box-tooltip';
+    boxTip.className = 'metric-box-tooltip scatter-box-tooltip';
+    boxTip.setAttribute('role', 'tooltip');
+    boxTip.hidden = true;
+    document.body.append(boxTip);
     const readout = document.querySelector('.scatter-panel .metric-controls');
     const legend = document.querySelector('.scatter-regions');
     const xControl = metricSelect('scatter-x', 'differencePer1000');
@@ -43,6 +49,47 @@
     let hoveredEntry = null;
     let currentEntry;
     let plot;
+    let boxTooltipHeading = '';
+    let boxTooltipRows = [];
+    let boxTooltipSignature = '';
+
+    function showBoxTooltip(event) {
+      if (!boxTooltipRows.length || event.pointerType === 'touch') return;
+      const signature = JSON.stringify([boxTooltipHeading, boxTooltipRows]);
+      if (signature !== boxTooltipSignature) {
+        const heading = document.createElement('p');
+        heading.textContent = boxTooltipHeading;
+        const table = document.createElement('table');
+        const thead = document.createElement('thead');
+        const header = document.createElement('tr');
+        for (const label of ['Opis', 'Vrijednost']) {
+          const cell = document.createElement('th');
+          cell.scope = 'col';
+          cell.textContent = label;
+          header.append(cell);
+        }
+        thead.append(header);
+        const tbody = document.createElement('tbody');
+        for (const [label, value] of boxTooltipRows) {
+          const row = document.createElement('tr');
+          const description = document.createElement('th');
+          description.scope = 'row';
+          description.textContent = label;
+          const amount = document.createElement('td');
+          amount.textContent = value;
+          row.append(description, amount);
+          tbody.append(row);
+        }
+        table.append(thead, tbody);
+        boxTip.replaceChildren(heading, table);
+        boxTooltipSignature = signature;
+      }
+      boxTip.hidden = false;
+      const width = boxTip.offsetWidth, height = boxTip.offsetHeight;
+      boxTip.style.left = Math.max(12, Math.min(event.clientX + 12, innerWidth - width - 12)) + 'px';
+      boxTip.style.top = (event.clientY + height + 12 <= innerHeight
+        ? event.clientY + 12 : Math.max(8, event.clientY - height - 12)) + 'px';
+    }
 
     for (const entry of plotData) {
       const dot = svgNode('circle', {class: 'scatter-mark' + (entry.special ? ' is-special' : ''),
@@ -89,6 +136,8 @@
     }
 
     function draw() {
+      boxTip.hidden = true;
+      boxTooltipRows = [];
       const axisEntry = hoveredEntry || currentEntry;
       const w = svg.clientWidth;
       const h = svg.clientHeight;
@@ -141,33 +190,29 @@
         if (distribution) {
           const {min, q1, median, mean, q3, max, whiskerLow, whiskerHigh, below, above} = distribution;
           const box = svgNode('g', {class: 'scatter-box', 'clip-path': 'url(#scatter-box-clip)'}, axes);
-          svgNode('title', {}, box, [
-            `${metricLabel(yKey)} · ${values.length} opština`,
-            `Minimum: ${metricValue({[yKey]: min}, yKey)}`,
-            `Donji brk: ${metricValue({[yKey]: whiskerLow}, yKey)}`,
-            `Q1: ${metricValue({[yKey]: q1}, yKey)}`,
-            `Medijana: ${metricValue({[yKey]: median}, yKey)}`,
-            `Q3: ${metricValue({[yKey]: q3}, yKey)}`,
-            `Gornji brk: ${metricValue({[yKey]: whiskerHigh}, yKey)}`,
-            `Maksimum: ${metricValue({[yKey]: max}, yKey)}`,
-            `Izvan brkova: ${below} ispod, ${above} iznad`,
-          ].join('\n'));
+          boxTooltipHeading = `${metricLabel(yKey)} · ${values.length} opština`;
+          boxTooltipRows = [
+            ['Minimum', min], ['Donji brk', whiskerLow], ['Q1', q1], ['Medijana', median],
+            ['Prosjek', mean], ['Q3', q3], ['Gornji brk', whiskerHigh], ['Maksimum', max],
+          ].map(([label, value]) => [label, metricValue({[yKey]: value}, yKey)]);
+          boxTooltipRows.push(['Izvan brkova', `${below} ispod, ${above} iznad`]);
           const boxX = right + 24;
+          svgNode('rect', {x: right + 9, y: top, width: 34, height: bottom - top,
+            class: 'scatter-box-hit'}, box);
           svgNode('line', {x1: boxX, x2: boxX, y1: y(whiskerHigh), y2: y(whiskerLow), class: 'scatter-box-whisker'}, box);
           for (const value of [whiskerLow, whiskerHigh]) svgNode('line', {x1: boxX - 5, x2: boxX + 5, y1: y(value), y2: y(value), class: 'scatter-box-whisker'}, box);
           if (below) svgNode('circle', {cx: boxX, cy: y(min), r: 3, class: 'scatter-box-outlier'}, box);
           if (above) svgNode('circle', {cx: boxX, cy: y(max), r: 3, class: 'scatter-box-outlier'}, box);
           svgNode('rect', {x: boxX - 8, y: y(q3), width: 16, height: Math.max(1, y(q1) - y(q3)), class: 'scatter-box-range'}, box);
           svgNode('line', {x1: boxX - 8, x2: boxX + 8, y1: y(median), y2: y(median), class: 'scatter-box-median'}, box);
-          const meanMark = svgNode('path', {d: `M ${boxX} ${y(mean) - 7} l 7 7 -7 7 -7 -7 Z`, class: 'scatter-box-mean region-box-mean'}, box);
-          svgNode('title', {}, meanMark, `Prosjek opština: ${metricValue({[yKey]: mean}, yKey)}`);
+          svgNode('path', {d: `M ${boxX} ${y(mean) - 7} l 7 7 -7 7 -7 -7 Z`, class: 'scatter-box-mean region-box-mean'}, box);
           if (axisEntry && isChartVisible(axisEntry.id) && Number.isFinite(axisEntry[yKey]) &&
               axisEntry[yKey] >= yAxis.min && axisEntry[yKey] <= yAxis.max) {
             const position = y(axisEntry[yKey]);
             const marker = svgNode('g', {class: 'scatter-box-selected'}, box);
             const dot = points.get(axisEntry.id);
             if (dot) marker.style.setProperty('--selected-color', getComputedStyle(dot).fill);
-            svgNode('title', {}, marker, `${axisEntry.name}: ${metricValue(axisEntry, yKey)}.\nMedijana: ${metricValue({[yKey]: median}, yKey)}; prosjek: ${metricValue({[yKey]: mean}, yKey)}.`);
+            boxTooltipRows.push([axisEntry.name, metricValue(axisEntry, yKey)]);
             svgNode('line', {x1: boxX - 9, x2: boxX + 9, y1: position, y2: position}, marker);
             svgNode('path', {d: `M ${boxX + 14} ${position - 5} L ${boxX + 14} ${position + 5} L ${boxX + 8} ${position} Z`}, marker);
           }
@@ -296,6 +341,7 @@
 
     function hideScatterTooltip() {
       tip.hidden = true;
+      boxTip.hidden = true;
       onHover(null);
     }
 
@@ -403,6 +449,13 @@
 
     svg.addEventListener('pointermove', event => {
       if (viewport.dragChart(event)) return;
+      if (event.target.closest('.scatter-box')) {
+        tip.hidden = true;
+        onHover(null);
+        showBoxTooltip(event);
+        return;
+      }
+      boxTip.hidden = true;
       const entry = entryAt(event);
       if (!entry || event.pointerType === 'touch') {
         hideScatterTooltip();
