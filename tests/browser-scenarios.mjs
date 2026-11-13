@@ -12,6 +12,16 @@ export async function runScenarios({evaluate, cdp, reload}) {
       && options.includes('Glasovi Lista1') && options.includes('Glasovi Lista3')
       && text.includes('Lista3 - Lista1');
   })()`);
+  await check('site notes show license and contact', `(() => {
+    const notes = document.querySelector('footer.notes details');
+    notes.open = true;
+    const license = notes.querySelector('#notes-license-heading + p a');
+    const contact = notes.querySelector('a[href="mailto:milan.grahovac@codis.tech"]');
+    const visible = license?.href.endsWith('/LICENSE') && !!contact
+      && getComputedStyle(license).display !== 'none';
+    notes.open = false;
+    return visible;
+  })()`);
   await check('initial chart settings match the chosen defaults', `(() => {
     const expected = {'map-color':'differencePer1000','map-texture':'votersAttended',
       'scatter-x':'developmentGroup2014','scatter-y':'differencePer1000',
