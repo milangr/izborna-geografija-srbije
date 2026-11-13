@@ -24,7 +24,7 @@ body { margin: 0; }
 [hidden] { display: none !important; }
 .shell { max-width: 1220px; padding: 1.25rem 1.4rem 1.5rem; margin-inline: auto; }
 .region-bars-panel { margin-top: 1rem; }
-.region-bars-panel > .panel-header { position: relative; }
+.region-bars-panel > .panel-header { position: relative; min-height: 4.75rem; }
 .region-bars-panel .method-help { position: static; }
 .region-bars-panel .readout-scope { flex: 1 1 0; max-width: none; }
 .region-bars-panel > .visual-header { flex-wrap: nowrap; justify-content: flex-start; }

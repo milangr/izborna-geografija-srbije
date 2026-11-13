@@ -19,6 +19,18 @@ export async function runScenarios({evaluate, cdp, reload}) {
       'region-box-y':'differencePer1000','region-box-size':'averageNetWage2025'};
     return Object.entries(expected).every(([id,value]) => qa.get(id).value === value);
   })()`);
+  await check('regional heading keeps its maximum legend height', `(() => {
+    const header = document.querySelector('.region-bars-panel > .panel-header');
+    const legend = document.getElementById('region-box-size-legend');
+    const height = header.getBoundingClientRect().height;
+    const stable = ['population', 'votes', 'age65PlusShare', 'stations', 'averageNetWage2025'].every(key => {
+      qa.change('region-box-size', key);
+      const headerRect = header.getBoundingClientRect();
+      const legendRect = legend.getBoundingClientRect();
+      return Math.abs(headerRect.height - height) < .5 && legendRect.bottom <= headerRect.bottom;
+    });
+    return stable;
+  })()`);
   await check('XY omits the Y median line', `(() => {
     const svg = document.querySelector('.scatter-plot');
     if (svg.querySelector('.scatter-average') || qa.get('scatter-description').textContent.includes('Horizontalna referentna linija')) return false;
