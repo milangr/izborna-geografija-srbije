@@ -6,6 +6,7 @@
     const scope = panel.querySelector('.selection-summary-scope');
     const ageKeys = new Set(['age0_14Share', 'youthShare', 'age30_44Share',
       'age45_64Share', 'age65PlusShare']);
+    const countKeys = new Set(['population', 'registeredVoters', 'votersAttended', 'validVotes']);
     const listKeys = new Set(['votes', 'snsShare', 'listVotes', 'snsVotes']);
     const percentKeys = new Set(['votes', 'snsShare', 'higherEducationShare']);
     const popup = document.createElement('div');
@@ -91,6 +92,7 @@
       const ageValues = entry || (entries.length ? aggregateEntries(entries) : {});
       const largestAgeShare = Math.max(0, ...[...ageKeys].map(key => ageValues[key] || 0));
       const largestListVotes = Math.max(0, ageValues.listVotes || 0, ageValues.snsVotes || 0);
+      const largestCount = Math.max(0, ...[...countKeys].map(key => Number.isFinite(ageValues[key]) ? ageValues[key] : 0));
       const rows = document.createDocumentFragment();
       for (const {key, label, format = wholeNumber.format} of columns) {
         if (key === 'name' || !visibleColumns.has(key)) continue;
@@ -114,7 +116,7 @@
         cell.textContent = entry ? entry[key] == null ? '-' : format(entry[key])
           : entries.length ? totals[key] ?? '-' : '-';
         if ((ageKeys.has(key) && Number.isFinite(ageValues[key]) && largestAgeShare > 0)
-          || ((listKeys.has(key) || key === 'higherEducationShare' || key === 'voteDifference')
+          || ((listKeys.has(key) || countKeys.has(key) || key === 'higherEducationShare' || key === 'voteDifference')
             && Number.isFinite(ageValues[key]))) {
           const value = cell.textContent;
           const display = document.createElement('div');
@@ -129,14 +131,14 @@
             : listKeys.has(key) ? key === 'votes' || key === 'listVotes' ? ' list3-bar' : ' list1-bar'
               : key === 'higherEducationShare' ? ' education-bar' : '');
           const scale = ageKeys.has(key) ? largestAgeShare
-            : percentKeys.has(key) ? 100 : largestListVotes;
+            : countKeys.has(key) ? largestCount : percentKeys.has(key) ? 100 : largestListVotes;
           bar.style.width = scale > 0 ? 100
             * Math.max(0, Math.min(1, (key === 'voteDifference'
               ? Math.abs(ageValues[key]) : ageValues[key]) / scale)) + '%' : '0%';
           track.append(bar);
           const valueText = document.createElement('span');
           valueText.className = 'selection-summary-age-value';
-          if (key === 'listVotes' || key === 'snsVotes' || key === 'voteDifference')
+          if (countKeys.has(key) || key === 'listVotes' || key === 'snsVotes' || key === 'voteDifference')
             valueText.classList.add('is-vote-count');
           valueText.textContent = value;
           display.append(track, valueText);

@@ -68,10 +68,11 @@
       {key: 'district', label: 'Okrug', format: value => value.replace(/ okrug$/, '')},
       {key: 'developmentGroup2014', label: metricLabel('developmentGroup2014'), format: value => developmentLabels[value]},
       {key: 'averageNetWage2025', label: metricLabel('averageNetWage2025'), format: wageEur},
-      ...['votes', 'snsShare', 'differencePer1000', 'voteDifference', 'listVotes', 'snsVotes']
+      ...['votes', 'snsShare', 'differencePer1000', 'voteDifference', 'listVotes', 'snsVotes',
+        'invalidShare', 'turnout', 'validVotes', 'votersAttended', 'registeredVoters',
+        'population', 'density', 'areaKm2', 'stations', 'higherEducationShare',
+        'age0_14Share', 'youthShare', 'age30_44Share', 'age45_64Share', 'age65PlusShare']
         .map(key => metricColumns.find(column => column.key === key)),
-      ...metricColumns.filter(column => !['votes', 'snsShare', 'differencePer1000',
-        'voteDifference', 'listVotes', 'snsVotes'].includes(column.key)),
     ];
     const sourceLinks = {
       rik: ['RIK · konačni rezultati', 'https://www.rik.parlament.gov.rs/542645/rezultati/'],

@@ -674,6 +674,10 @@ a { color: #225c92; }
   .selection-summary tr[data-metric="snsShare"] .selection-summary-age-bar,
   .selection-summary tr[data-metric="snsVotes"] .selection-summary-age-bar { margin-left: auto; }
   .selection-summary-age-bar.education-bar { background: #8b5aa8; }
+  .selection-summary tr[data-metric="population"] .selection-summary-age-bar,
+  .selection-summary tr[data-metric="registeredVoters"] .selection-summary-age-bar,
+  .selection-summary tr[data-metric="votersAttended"] .selection-summary-age-bar,
+  .selection-summary tr[data-metric="validVotes"] .selection-summary-age-bar { background: #64748b; }
   .selection-summary-age-value { flex: 0 0 3rem; text-align: right; }
   .selection-summary-age-value.is-vote-count { flex-basis: 4.2rem; }
   .selection-summary tbody tr:nth-child(even) { background: #f7fafd; }
