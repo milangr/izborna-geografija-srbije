@@ -509,7 +509,6 @@ select { display: block; width: 100%; margin-top: .75rem; padding: .4rem .55rem;
 #column-help-developmentGroup2014 p { white-space: pre-line; }
 .column-help-sources { padding-top: .45rem; border-top: 1px solid var(--line); }
 .column-help-sources a { color: #225c92; }
-.table-scroll-hint { display: block; margin: 0; padding: .5rem .8rem; border-top: 1px solid var(--line); background: #fff; color: var(--secondary); font-size: .8rem; }
 #municipality-table thead .column-filter-button { position: absolute; right: 0; bottom: 0; display: grid; place-items: center; width: 22px; min-width: 22px; height: 22px; min-height: 22px; padding: 0; color: #355f86; }
 #municipality-table thead .column-filter-button:hover, #municipality-table thead .column-filter-button.has-filter { color: #174a78; background: #d4e8fa; }
 .column-filter-button svg { width: 11px; height: 11px; }
@@ -576,7 +575,6 @@ a { color: #225c92; }
 @media (max-width: 540px) {
   .region-bars-panel .readout-scope { max-width: none; }
   .region-box-size-legend { justify-content: flex-end; gap: .7rem; }
-  .table-scroll-hint { display: flex; flex-direction: column; gap: .35rem; line-height: 1.4; }
   .visual-zoom button { min-width: 40px; min-height: 40px; }
   .notes-sources { grid-template-columns: minmax(0, 1fr); }
   .shell { padding: 1.25rem .65rem 1rem; }
