@@ -51,7 +51,9 @@
     let plot;
     let boxTooltipHeading = '';
     let boxTooltipRows = [];
+    let boxTooltipBaseRows = [];
     let boxTooltipSignature = '';
+    let markerAxes;
 
     function showBoxTooltip(event) {
       if (!boxTooltipRows.length || event.pointerType === 'touch') return;
@@ -138,7 +140,7 @@
     function draw() {
       boxTip.hidden = true;
       boxTooltipRows = [];
-      const axisEntry = hoveredEntry || currentEntry;
+      boxTooltipBaseRows = [];
       const w = svg.clientWidth;
       const h = svg.clientHeight;
       if (!w || !h) return;
@@ -173,6 +175,7 @@
       }
       const x = value => left + (value - xAxis.min) / (xAxis.max - xAxis.min) * (right - left);
       const y = value => bottom - (value - yAxis.min) / (yAxis.max - yAxis.min) * (bottom - top);
+      markerAxes = {xKey, yKey, xAxis, yAxis, x, y, left, right, bottom, hasYBox};
       const categoryOffset = (entry, salt) => {
         let hash = salt;
         for (const char of entry.id) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
@@ -196,6 +199,7 @@
             ['Prosjek', mean], ['Q3', q3], ['Gornji brk', whiskerHigh], ['Maksimum', max],
           ].map(([label, value]) => [label, metricValue({[yKey]: value}, yKey)]);
           boxTooltipRows.push(['Izvan brkova', `${below} ispod, ${above} iznad`]);
+          boxTooltipBaseRows = boxTooltipRows;
           const boxX = right + 24;
           svgNode('rect', {x: right + 9, y: top, width: 34, height: bottom - top,
             class: 'scatter-box-hit'}, box);
@@ -206,16 +210,6 @@
           svgNode('rect', {x: boxX - 8, y: y(q3), width: 16, height: Math.max(1, y(q1) - y(q3)), class: 'scatter-box-range'}, box);
           svgNode('line', {x1: boxX - 8, x2: boxX + 8, y1: y(median), y2: y(median), class: 'scatter-box-median'}, box);
           svgNode('path', {d: `M ${boxX} ${y(mean) - 7} l 7 7 -7 7 -7 -7 Z`, class: 'scatter-box-mean region-box-mean'}, box);
-          if (axisEntry && isChartVisible(axisEntry.id) && Number.isFinite(axisEntry[yKey]) &&
-              axisEntry[yKey] >= yAxis.min && axisEntry[yKey] <= yAxis.max) {
-            const position = y(axisEntry[yKey]);
-            const marker = svgNode('g', {class: 'scatter-box-selected'}, box);
-            const dot = points.get(axisEntry.id);
-            if (dot) marker.style.setProperty('--selected-color', getComputedStyle(dot).fill);
-            boxTooltipRows.push([axisEntry.name, metricValue(axisEntry, yKey)]);
-            svgNode('line', {x1: boxX - 9, x2: boxX + 9, y1: position, y2: position}, marker);
-            svgNode('path', {d: `M ${boxX + 14} ${position - 5} L ${boxX + 14} ${position + 5} L ${boxX + 8} ${position} Z`}, marker);
-          }
         }
       }
       for (let value = Math.ceil(xAxis.min / xAxis.step) * xAxis.step; value <= xAxis.max; value += xAxis.step) {
@@ -256,26 +250,48 @@
         dot.setAttribute('cy', Number.isFinite(entry[yKey])
           ? y(entry[yKey] + (metrics[yKey].categorical ? categoryOffset(entry, 97) : 0)) : -10000);
       }
-      if (axisEntry && isChartVisible(axisEntry.id)) {
-        for (const [dimension, key, scale, position] of [
-          ['x', xKey, xAxis, x], ['y', yKey, yAxis, y],
-        ]) {
-          const value = axisEntry[key];
-          if (!Number.isFinite(value) || value < scale.min || value > scale.max) continue;
-          const marker = svgNode('g', {class: 'selected-axis-marker', 'data-axis': dimension}, axes);
-          svgNode('title', {}, marker, `${axisEntry.name}: ${metricValue(axisEntry, key)}`);
-          const p = position(value);
-          svgNode('path', {d: dimension === 'x'
-            ? `M ${p} ${bottom} l -5 8 h 10 Z`
-            : `M ${left} ${p} l -8 -5 v 10 Z`}, marker);
-          const label = svgNode('text', {x: dimension === 'x' ? p : left - 11,
-            y: dimension === 'x' ? bottom + 22 : p + 4,
-            'text-anchor': dimension === 'x' ? 'middle' : 'end'}, marker, scale.format(value));
-          const box = label.getBBox();
-          const background = svgNode('rect', {x: box.x - 2, y: box.y - 1,
-            width: box.width + 4, height: box.height + 2, rx: 2}, marker);
-          marker.insertBefore(background, label);
+      updateEntryMarkers();
+    }
+
+    function updateEntryMarkers() {
+      if (!markerAxes) return;
+      axes.querySelectorAll('.scatter-box-selected, .selected-axis-marker').forEach(marker => marker.remove());
+      boxTooltipRows = [...boxTooltipBaseRows];
+      const axisEntry = hoveredEntry || currentEntry;
+      if (!axisEntry || !isChartVisible(axisEntry.id)) return;
+      const {xKey, yKey, xAxis, yAxis, x, y, left, right, bottom, hasYBox} = markerAxes;
+      if (hasYBox && Number.isFinite(axisEntry[yKey]) &&
+          axisEntry[yKey] >= yAxis.min && axisEntry[yKey] <= yAxis.max) {
+        const box = axes.querySelector('.scatter-box');
+        if (box) {
+          const boxX = right + 24;
+          const position = y(axisEntry[yKey]);
+          const marker = svgNode('g', {class: 'scatter-box-selected'}, box);
+          const dot = points.get(axisEntry.id);
+          if (dot) marker.style.setProperty('--selected-color', getComputedStyle(dot).fill);
+          boxTooltipRows.push([axisEntry.name, metricValue(axisEntry, yKey)]);
+          svgNode('line', {x1: boxX - 9, x2: boxX + 9, y1: position, y2: position}, marker);
+          svgNode('path', {d: `M ${boxX + 14} ${position - 5} L ${boxX + 14} ${position + 5} L ${boxX + 8} ${position} Z`}, marker);
         }
+      }
+      for (const [dimension, key, scale, position] of [
+        ['x', xKey, xAxis, x], ['y', yKey, yAxis, y],
+      ]) {
+        const value = axisEntry[key];
+        if (!Number.isFinite(value) || value < scale.min || value > scale.max) continue;
+        const marker = svgNode('g', {class: 'selected-axis-marker', 'data-axis': dimension}, axes);
+        svgNode('title', {}, marker, `${axisEntry.name}: ${metricValue(axisEntry, key)}`);
+        const p = position(value);
+        svgNode('path', {d: dimension === 'x'
+          ? `M ${p} ${bottom} l -5 8 h 10 Z`
+          : `M ${left} ${p} l -8 -5 v 10 Z`}, marker);
+        const label = svgNode('text', {x: dimension === 'x' ? p : left - 11,
+          y: dimension === 'x' ? bottom + 22 : p + 4,
+          'text-anchor': dimension === 'x' ? 'middle' : 'end'}, marker, scale.format(value));
+        const box = label.getBBox();
+        const background = svgNode('rect', {x: box.x - 2, y: box.y - 1,
+          width: box.width + 4, height: box.height + 2, rx: 2}, marker);
+        marker.insertBefore(background, label);
       }
     }
 
@@ -336,7 +352,7 @@
       if (hoveredPoint) marks.append(hoveredPoint);
       else if (highlighted) marks.append(highlighted);
       showScatterValues(hoveredEntry || currentEntry);
-      draw();
+      updateEntryMarkers();
     }
 
     function hideScatterTooltip() {
@@ -348,9 +364,16 @@
     function updateMetrics() {
       const sizeKey = sizeControl.value;
       const colorKey = colorControl.value;
-      const sizes = plotData.map(entry => entry[sizeKey]).filter(Number.isFinite);
+      const sizes = plotData.filter(entry => isChartVisible(entry.id) && hasPlotValue(entry))
+        .map(entry => entry[sizeKey]);
+      const minSize = Math.min(...sizes);
       const maxSize = Math.max(...sizes);
-      const radius = value => Number.isFinite(value) ? 18 * (value / maxSize) ** .3 : 0;
+      const sizeStep = sizes.length && minSize !== maxSize ? niceStep((maxSize - minSize) / 20) : 0;
+      const sizeMin = sizeStep ? Math.floor(minSize / sizeStep) * sizeStep : minSize;
+      const sizeMax = sizeStep ? Math.ceil(maxSize / sizeStep) * sizeStep : maxSize;
+      const radius = value => !Number.isFinite(value) || !sizes.length ? 0
+        : sizeMin === sizeMax ? 13
+          : 8 + 10 * Math.max(0, Math.min(1, (value - sizeMin) / (sizeMax - sizeMin)));
       for (const entry of [...plotData].sort((a, b) => b[sizeKey] - a[sizeKey])) {
         const dot = points.get(entry.id);
         dot.setAttribute('r', radius(entry[sizeKey]));
@@ -401,16 +424,19 @@
           legend.append(item);
         });
       }
-      sizeLabel.textContent = metricLabel(sizeKey) + ' (ublažena skala)';
-      const base = 10 ** Math.floor(Math.log10(maxSize));
-      const high = [5, 2, 1].find(n => n * base <= maxSize) * base;
-      const samples = sizeKey === 'averageNetWage2025'
-        ? [Math.min(...sizes), (Math.min(...sizes) + maxSize) / 2, maxSize]
-        : high >= 10000 ? [high / 100, high / 10, high] : [high / 10, high / 2, high];
+      sizeLabel.textContent = metricLabel(sizeKey) + ' (prikazani raspon)';
+      const samples = !sizes.length ? [] : sizeMin === sizeMax ? [sizeMin]
+        : [sizeMin, (sizeMin + sizeMax) / 2, sizeMax];
       sizeLegend.replaceChildren();
+      if (!samples.length) {
+        const empty = document.createElement('span');
+        empty.className = 'scatter-size-empty';
+        empty.textContent = 'Nema podataka';
+        sizeLegend.append(empty);
+      }
       for (const value of samples) {
         const item = document.createElement('span');
-        item.className = 'scatter-size';
+        item.className = 'scatter-size' + (samples.length === 1 ? ' is-only-size' : '');
         item.dataset.value = value;
         const sample = document.createElement('i');
         sample.setAttribute('aria-hidden', 'true');

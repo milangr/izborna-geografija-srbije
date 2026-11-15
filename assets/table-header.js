@@ -94,7 +94,7 @@
       popup.addEventListener('focusout', scheduleHide);
       table.closest('.table-panel').append(popup);
     };
-    columnHelp.number = ['Izbor vidljivih kolona: kliknite na podebljanu ikonicu ispod „Br.” da uključite ili isključite kolone tabele.\nKolona „Opština / grad” uvijek ostaje vidljiva.\n„Br.” označava redni broj reda.', []];
+    columnHelp.number = ['Podešavanja kolona: kliknite na ikonicu ispod „Br.” da uključite kolone ili promijenite njihov redoslijed.\nKolona „Opština / grad” uvijek ostaje prva i vidljiva.\n„Br.” označava redni broj reda.', []];
     addColumnHelp(numberHeading, 'number');
     const headers = new Map();
     const rangeFilters = new Map();
@@ -317,14 +317,100 @@
       });
     }
 
-    const columnVisibility = createChoiceFilter('visible-columns', 'Vidljive kolone',
-      columns.map(column => [column.key, column.label]), ['name']);
+    let draftColumnOrder = columns.map(column => column.key);
+    const columnVisibility = window.createChoiceFilter({id: 'visible-columns', label: 'Vidljive kolone',
+      options: columns.map(column => [column.key, column.label]), locked: ['name'],
+      onApply: () => {
+        const byKey = new Map(columns.map(column => [column.key, column]));
+        columns.splice(0, columns.length, ...draftColumnOrder.map(key => byKey.get(key)));
+        headingRow.replaceChildren(selectionHeading, numberHeading, ...columns.map(item => headers.get(item.key)));
+        renderTable();
+      },
+    });
+    const columnList = columnVisibility.element.querySelector('.choice-filter-list');
+    const columnOptions = new Map([...columnList.children].map(option =>
+      [option.querySelector('input').value, option]));
+    let optionDrag = null;
+    const clearOptionDrop = () => {
+      for (const option of columnOptions.values()) {
+        option.removeAttribute('data-drop-side');
+        option.classList.remove('is-dragging');
+      }
+    };
+    const syncColumnOrder = () => {
+      columnList.replaceChildren(...draftColumnOrder.map(key => columnOptions.get(key)));
+    };
+    for (const column of columns.slice(1)) {
+      const option = columnOptions.get(column.key);
+      option.dataset.columnKey = column.key;
+      option.querySelector('input').setAttribute('aria-label', column.label);
+      const grip = document.createElement('button');
+      grip.type = 'button';
+      grip.className = 'column-option-grip';
+      grip.textContent = '⋮⋮';
+      grip.title = 'Prevuci za promjenu redoslijeda';
+      grip.setAttribute('aria-label', 'Prevuci kolonu ' + column.label);
+      grip.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); });
+      grip.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        optionDrag = {pointerId: event.pointerId, sourceKey: column.key,
+          targetKey: null, side: null};
+        grip.setPointerCapture(event.pointerId);
+        option.classList.add('is-dragging');
+        event.preventDefault();
+        event.stopPropagation();
+      });
+      grip.addEventListener('pointermove', event => {
+        if (!optionDrag || event.pointerId !== optionDrag.pointerId) return;
+        const rect = columnList.getBoundingClientRect();
+        if (event.clientY < rect.top + 20) columnList.scrollTop -= 12;
+        else if (event.clientY > rect.bottom - 20) columnList.scrollTop += 12;
+        clearOptionDrop();
+        option.classList.add('is-dragging');
+        const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('label[data-column-key]');
+        const targetKey = target?.dataset.columnKey;
+        if (!targetKey || targetKey === column.key) { optionDrag.targetKey = null; return; }
+        const side = event.clientY < target.getBoundingClientRect().top + target.getBoundingClientRect().height / 2
+          ? 'before' : 'after';
+        target.dataset.dropSide = side;
+        optionDrag.targetKey = targetKey;
+        optionDrag.side = side;
+      });
+      const finishOptionDrag = event => {
+        if (!optionDrag || event.pointerId !== optionDrag.pointerId) return;
+        const {sourceKey, targetKey, side} = optionDrag;
+        optionDrag = null;
+        clearOptionDrop();
+        if (event.type !== 'pointerup' || !targetKey) return;
+        const sourceIndex = draftColumnOrder.indexOf(sourceKey);
+        draftColumnOrder.splice(sourceIndex, 1);
+        const targetIndex = draftColumnOrder.indexOf(targetKey) + (side === 'after' ? 1 : 0);
+        draftColumnOrder.splice(targetIndex, 0, sourceKey);
+        syncColumnOrder();
+        grip.focus();
+      };
+      grip.addEventListener('pointerup', finishOptionDrag);
+      grip.addEventListener('pointercancel', finishOptionDrag);
+      grip.addEventListener('keydown', event => {
+        if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+        const index = draftColumnOrder.indexOf(column.key);
+        const target = index + (event.key === 'ArrowUp' ? -1 : 1);
+        if (target < 1 || target >= draftColumnOrder.length) return;
+        event.preventDefault();
+        [draftColumnOrder[index], draftColumnOrder[target]] =
+          [draftColumnOrder[target], draftColumnOrder[index]];
+        syncColumnOrder();
+        grip.focus();
+      });
+      option.insertBefore(grip, option.childNodes[1]);
+    }
+    syncColumnOrder();
     const columnPopup = document.createElement('div');
     columnPopup.id = 'column-visibility';
     columnPopup.className = 'range-popover';
     columnPopup.setAttribute('popover', 'auto');
     const columnTitle = document.createElement('p');
-    columnTitle.textContent = 'Vidljive kolone';
+    columnTitle.textContent = 'Vidljivost i redoslijed kolona';
     columnPopup.append(columnTitle, columnVisibility.element);
     table.closest('.table-panel').append(columnPopup);
     const columnGroup = document.createElement('div');
@@ -334,9 +420,9 @@
     const columnButton = document.createElement('button');
     columnButton.type = 'button';
     columnButton.className = 'column-filter-button';
-    columnButton.setAttribute('aria-label', 'Izaberi vidljive kolone');
+    columnButton.setAttribute('aria-label', 'Podesi kolone');
     columnButton.setAttribute('popovertarget', columnPopup.id);
-    columnButton.innerHTML = filterButtons.get('name').innerHTML;
+    columnButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 2h5l.5 2.2 1.6.7 1.9-1.2 3.5 3.5-1.2 1.9.7 1.6L24 11.5v5l-2.2.5-.7 1.6 1.2 1.9-3.5 3.5-1.9-1.2-1.6.7-.5 2.2h-5l-.5-2.2-1.6-.7-1.9 1.2-3.5-3.5 1.2-1.9-.7-1.6L.5 16.5v-5l2.2-.5.7-1.6-1.2-1.9 3.5-3.5 1.9 1.2 1.6-.7z" transform="translate(1.7 1.7) scale(.85)" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
     columnGroup.append(numberLabel, columnButton);
     numberHeading.replaceChildren(columnGroup);
     const positionColumnPopup = () => {
@@ -345,7 +431,12 @@
       columnPopup.style.top = Math.max(8, Math.min(rect.bottom + 5, innerHeight - columnPopup.offsetHeight - 8)) + 'px';
     };
     columnPopup.addEventListener('beforetoggle', event => {
-      if (event.newState === 'open') { columnVisibility.beginEdit(); positionColumnPopup(); }
+      if (event.newState === 'open') {
+        draftColumnOrder = columns.map(column => column.key);
+        syncColumnOrder();
+        columnVisibility.beginEdit();
+        positionColumnPopup();
+      }
     });
     columnPopup.addEventListener('toggle', event => {
       if (event.newState === 'open') positionColumnPopup();

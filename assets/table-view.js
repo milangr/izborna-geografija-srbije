@@ -111,11 +111,14 @@
           value.textContent = format(entry[key]);
           bar.append(fill, value);
           cell.append(bar);
-        } else if (key === 'votes' && Number.isFinite(entry[key])) {
+        } else if (['votes', 'snsShare', 'listVotes', 'snsVotes'].includes(key)
+          && Number.isFinite(entry[key])) {
           cell.className = 'share-cell';
           const bar = document.createElement('span');
-          bar.className = 'share-bar';
-          bar.style.setProperty('--bar-width', Math.max(0, Math.min(100, entry[key])) + '%');
+          bar.className = 'share-bar ' + (key === 'votes' || key === 'listVotes' ? 'list3-bar' : 'list1-bar');
+          const scale = key === 'votes' || key === 'snsShare' ? 100
+            : Math.max(1, entry.listVotes || 0, entry.snsVotes || 0);
+          bar.style.setProperty('--bar-width', 100 * Math.max(0, Math.min(1, entry[key] / scale)) + '%');
           const fill = document.createElement('span');
           fill.className = 'share-fill';
           fill.setAttribute('aria-hidden', 'true');

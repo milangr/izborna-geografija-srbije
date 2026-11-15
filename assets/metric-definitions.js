@@ -30,12 +30,12 @@
       population: {label: 'Broj stanovnika', breaks: [20000, 75000]},
       density: {label: 'Gustina', unit: 'stan./km²', breaks: [60, 150], format: densityText},
       areaKm2: {label: 'Površina', unit: 'km²', breaks: [300, 700], format: value => number.format(value) + ' km²'},
+      higherEducationShare: {label: 'Više/visoko obrazovani (%)', unit: '%', breaks: [11, 15], format: percent},
       age0_14Share: {label: 'Uzrast 0-14 (%)', unit: '%', breaks: [13, 15], format: percent},
       youthShare: {label: 'Uzrast 15-29 (%)', unit: '%', breaks: [14.5, 15.5], format: percent},
       age30_44Share: {label: 'Uzrast 30-44 (%)', unit: '%', breaks: [18, 21], format: percent},
       age45_64Share: {label: 'Uzrast 45-64 (%)', unit: '%', breaks: [27, 30], format: percent},
       age65PlusShare: {label: 'Uzrast 65+ (%)', unit: '%', breaks: [20, 25], format: percent},
-      higherEducationShare: {label: 'Više/visoko obrazovani (%)', unit: '%', breaks: [11, 15], format: percent},
     };
     const metricValue = (entry, key) => Number.isFinite(entry[key])
       ? (metrics[key].format || wholeNumber.format)(entry[key]) : '-';
@@ -68,9 +68,10 @@
       {key: 'district', label: 'Okrug', format: value => value.replace(/ okrug$/, '')},
       {key: 'developmentGroup2014', label: metricLabel('developmentGroup2014'), format: value => developmentLabels[value]},
       {key: 'averageNetWage2025', label: metricLabel('averageNetWage2025'), format: wageEur},
-      metricColumns.find(column => column.key === 'voteDifference'),
-      metricColumns.find(column => column.key === 'differencePer1000'),
-      ...metricColumns.filter(column => !isDifference(column.key)),
+      ...['votes', 'snsShare', 'differencePer1000', 'voteDifference', 'listVotes', 'snsVotes']
+        .map(key => metricColumns.find(column => column.key === key)),
+      ...metricColumns.filter(column => !['votes', 'snsShare', 'differencePer1000',
+        'voteDifference', 'listVotes', 'snsVotes'].includes(column.key)),
     ];
     const sourceLinks = {
       rik: ['RIK · konačni rezultati', 'https://www.rik.parlament.gov.rs/542645/rezultati/'],
@@ -93,9 +94,9 @@
       differencePer1000: ['1000 × (glasovi Lista3 - glasovi Lista1) / broj izašlih.\nPozitivno znači prednost Liste3, negativno prednost Liste1.\nZbirna vrijednost računa se iz ukupnih glasova i izašlih.', ['rik']],
       voteDifference: ['Glasovi Lista3 minus glasovi Lista1.\nPozitivna traka ide udesno, negativna ulijevo.', ['rik']],
       votes: ['Udio glasova za Lista3 među važećim glasovima.\nTraka prikazuje udio na skali od 0 do 100%.', ['rik']],
-      listVotes: ['Broj glasova za Lista3.', ['rik']],
-      snsShare: ['Udio glasova za Lista1 među važećim glasovima.', ['rik']],
-      snsVotes: ['Broj glasova za Lista1.', ['rik']],
+      listVotes: ['Broj glasova za Lista3.\nTraka koristi zajedničku skalu za glasove obje liste u istom redu.', ['rik']],
+      snsShare: ['Udio glasova za Lista1 među važećim glasovima.\nTraka prikazuje udio na skali od 0 do 100%.', ['rik']],
+      snsVotes: ['Broj glasova za Lista1.\nTraka koristi zajedničku skalu za glasove obje liste u istom redu.', ['rik']],
       validVotes: ['Broj važećih glasova.', ['rik']],
       invalidShare: ['Broj nevažećih listića podijeljen brojem listića pronađenih u kutijama.', ['rik']],
       turnout: ['Broj birača koji su izašli podijeljen brojem upisanih birača.', ['rik']],
