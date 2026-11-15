@@ -454,7 +454,7 @@ select { display: block; width: 100%; margin-top: .75rem; padding: .4rem .55rem;
 #municipality-table th.col-voteDifference { min-width: 7rem; }
 #municipality-table th.col-age0_14Share, #municipality-table th.col-youthShare,
 #municipality-table th.col-age30_44Share, #municipality-table th.col-age45_64Share,
-#municipality-table th.col-age65PlusShare { min-width: 10rem; }
+#municipality-table th.col-age65PlusShare { min-width: 6rem; }
 #municipality-table th.col-higherEducationShare { min-width: 7rem; }
 #municipality-table .difference-bar { position: relative; display: block; min-width: 5.75rem; line-height: 1.35rem; isolation: isolate; }
 #municipality-table .difference-bar::before { position: absolute; top: 1px; bottom: 1px; left: 50%; width: 1px; background: #8ea3b7; content: ''; }
