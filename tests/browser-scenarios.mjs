@@ -4,13 +4,13 @@ export async function runScenarios({evaluate, cdp, reload}) {
     console.log("PASS " + name);
   };
   await evaluate(`window.qa={get:id=>document.getElementById(id),change(id,value){let c=this.get(id);c.value=value;c.dispatchEvent(new Event('change',{bubbles:true}));},rows:()=>document.querySelectorAll('#municipality-table tbody tr').length,points:()=>document.querySelectorAll('.scatter-mark:not(.is-filtered)').length};`);
-  await check('election measures use Lista1 and Lista3 labels', `(() => {
+  await check('election measures use SNS and SL labels', `(() => {
     const text = document.body.textContent;
     const options = [...qa.get('map-color').options].map(option => option.textContent);
-    return document.querySelector('.page-intro').textContent.includes('Lista1 (SNS) i Lista3 (Studentska lista)')
-      && !options.some(option => option.includes('SNS')) && options.includes('Udio Lista1 (%)')
-      && options.includes('Glasovi Lista1') && options.includes('Glasovi Lista3')
-      && text.includes('Lista3 - Lista1');
+    return document.querySelector('.page-intro').textContent.includes('Liste 1 (SNS) i Liste 3 (SL)')
+      && !options.some(option => /Lista[13]/.test(option)) && options.includes('Udio SNS (%)')
+      && options.includes('Glasovi SNS') && options.includes('Glasovi SL')
+      && text.includes('SL - SNS');
   })()`);
   await check('site notes show license and contact', `(() => {
     const notes = document.querySelector('footer.notes details');
@@ -95,7 +95,7 @@ export async function runScenarios({evaluate, cdp, reload}) {
     const chart = document.querySelector('.scatter-panel').getBoundingClientRect();
     const total = qa.get('municipality-table').tFoot.rows[0];
     const headings = [...qa.get('municipality-table').tHead.rows[0].cells];
-    const index = headings.findIndex(cell => cell.textContent.includes('Glasovi Lista3'));
+    const index = headings.findIndex(cell => cell.textContent.includes('Glasovi SL'));
     return getComputedStyle(panel).display !== 'none' && rect.left >= chart.right
       && rect.right <= document.documentElement.clientWidth && rect.bottom <= innerHeight
       && panel.querySelector('[data-metric="listVotes"] td').textContent === total.cells[index].textContent;

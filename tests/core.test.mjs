@@ -17,7 +17,7 @@ const sourceFiles = ['data', 'beograd-results', 'kosovo-results', 'special-resul
 test('export ranges and formulas follow the row count, including the total row', () => {
   for (const unitCount of [1, 185, 200]) {
     const rows = [
-      ['Name', 'Glasovi Lista3', 'Glasovi Lista1', 'Birači koji su izašli', 'Razlika na 1000 izašlih'],
+      ['Name', 'Glasovi SL', 'Glasovi SNS', 'Birači koji su izašli', 'Razlika na 1000 izašlih'],
       ...Array.from({length: unitCount}, (_, i) => [`Unit ${i}`, 30, 10, 100, null]),
       ['Total', 30 * unitCount, 10 * unitCount, 100 * unitCount, null],
     ];
@@ -134,7 +134,7 @@ test('Python export and site agree on row coverage, vote totals and turnout', ()
   assert.ok(exported.every(row => row.length === exported[0].length));
   assert.deepEqual(exported.slice(1, -1).map(row => row[1]).sort(), [...rows].map(row => row.name).sort());
   const totals = sources.electionCalculations.aggregateEntries(rows);
-  for (const [header, key, divisor] of [['Glasovi Lista3', 'listVotes', 1], ['Glasovi Lista1', 'snsVotes', 1], ['Izlaznost (%)', 'turnout', 100]]) {
+  for (const [header, key, divisor] of [['Glasovi SL', 'listVotes', 1], ['Glasovi SNS', 'snsVotes', 1], ['Izlaznost (%)', 'turnout', 100]]) {
     assert.equal(exported.at(-1)[exported[0].indexOf(header)], totals[key] / divisor);
   }
   for (const [header, key] of [['Uzrast 0-14 (%)', 'age0_14Share'],

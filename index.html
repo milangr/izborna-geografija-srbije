@@ -35,9 +35,9 @@
   <script src="./assets/map-view.js?v=20261112-1" defer></script>
   <script src="./assets/table-view.js?v=20261115-list-bars-1" defer></script>
   <script src="./assets/map-legend.js?v=20261112-legend-scale-1" defer></script>
-  <script src="./assets/table-header.js?v=20261115-column-settings-2" defer></script>
+  <script src="./assets/table-header.js?v=20261117-list-labels-1" defer></script>
   <script src="./assets/data-model.js?v=20261113-age-1" defer></script>
-  <script src="./assets/metric-definitions.js?v=20261115-default-order-1" defer></script>
+  <script src="./assets/metric-definitions.js?v=20261117-list-labels-1" defer></script>
   <script src="./assets/help-popovers.js?v=20261112-refactor-4" defer></script>
   <script src="./assets/metric-readout.js?v=20261113-dash-1" defer></script>
   <script src="./assets/view-preferences.js?v=20261113-intro-1" defer></script>
@@ -51,7 +51,7 @@
         <h1>Izborna geografija Srbije</h1>
         <details class="page-intro-details" id="page-intro-details" open>
           <summary>O prikazu</summary>
-          <p class="page-intro">Izborni rezultati lista Lista1 (SNS) i Lista3 (Studentska lista) po opštinama i regijama Srbije mogu se uporediti s relevantnim statističkim pokazateljima. Kliknite na elemente prikaza za izbor, a točkićem miša zumirajte mapu i grafikone. Prikazi su međusobno povezani; prenos filtera između prikaza i tabele podešava se opcijom „Povezivanje”.</p>
+          <p class="page-intro">Izborni rezultati Liste 1 (SNS) i Liste 3 (SL) po opštinama i regijama Srbije mogu se uporediti s relevantnim statističkim pokazateljima. Kliknite na elemente prikaza za izbor, a točkićem miša zumirajte mapu i grafikone. Prikazi su međusobno povezani; prenos filtera između prikaza i tabele podešava se opcijom „Povezivanje”.</p>
         </details>
       </div>
       <div class="page-header-actions">
@@ -363,7 +363,7 @@
         <div class="method-help">
           <button class="method-help-button" type="button" aria-label="Objašnjenje bočnog pregleda" aria-describedby="selection-summary-method-tip">i</button>
           <div id="selection-summary-method-tip" class="method-tooltip">
-            <p class="tooltip-sentence">Pokazatelji prate vidljive kolone tabele. Zbir prati regije i filtere mape i XY. Trake udjela koriste skalu 0-100%, glasovi obje liste i njihova razlika istu skalu dužine. Razlika počinje sa strane vodeće liste: slijeva za Listu3 (plavo), zdesna za Listu1 (narandžasto). Veća lista popunjava cijelu traku. Broj stanovnika, upisani i izašli birači te važeći glasovi koriste zajedničku skalu prema najvećoj dostupnoj vrijednosti. Starosne grupe koriste skalu najveće grupe. Raspon 45-64 ima 20 godina, ostale zatvorene grupe po 15; grupa 65+ je otvorena.</p>
+            <p class="tooltip-sentence">Pokazatelji prate vidljive kolone tabele. Zbir prati regije i filtere mape i XY. Trake udjela koriste skalu 0-100%, glasovi obje liste i njihova razlika istu skalu dužine. Razlika počinje sa strane vodeće liste: slijeva za SL (plavo), zdesna za SNS (narandžasto). Veća lista popunjava cijelu traku. Broj stanovnika, upisani i izašli birači te važeći glasovi koriste zajedničku skalu prema najvećoj dostupnoj vrijednosti. Starosne grupe koriste skalu najveće grupe. Raspon 45-64 ima 20 godina, ostale zatvorene grupe po 15; grupa 65+ je otvorena.</p>
           </div>
         </div>
       </div>
@@ -408,7 +408,7 @@
           <button id="clear-table-filters" type="button">Očisti filtere</button>
         </div>
         <div class="table-selection-actions">
-              <a class="table-export" href="./data/izborna-geografija-srbije-2026.xlsx?v=20261113-dash-1" download="izborna-geografija-srbije-2026.xlsx" title="Preuzmi svih 185 redova, bez obzira na filtere">Preuzmi XLSX · svi redovi</a>
+              <a class="table-export" href="./data/izborna-geografija-srbije-2026.xlsx?v=20261117-list-labels-1" download="izborna-geografija-srbije-2026.xlsx" title="Preuzmi svih 185 redova, bez obzira na filtere">Preuzmi XLSX · svi redovi</a>
           <a id="jump-to-visuals" href="#map-heading" hidden>Prikaži mapu, XY i box ↑</a>
         </div>
       </div>
@@ -431,7 +431,7 @@
           <section aria-labelledby="notes-sources-heading">
             <h3 id="notes-sources-heading">Izvori podataka</h3>
             <dl class="notes-sources">
-              <div><dt>Izborni rezultati · RIK</dt><dd>Glasovi za Lista3 i Lista1, važeći i nevažeći listići, izašli i upisani birači, biračka mjesta, regija i okrug. <a href="https://www.rik.parlament.gov.rs/542645/rezultati/">Konačni rezultati i mapa</a> · <a href="https://www.rik.parlament.gov.rs/export-results/680072/2">Podaci po biračkim mjestima (CSV)</a></dd></div>
+              <div><dt>Izborni rezultati · RIK</dt><dd>Glasovi za SL i SNS, važeći i nevažeći listići, izašli i upisani birači, biračka mjesta, regija i okrug. <a href="https://www.rik.parlament.gov.rs/542645/rezultati/">Konačni rezultati i mapa</a> · <a href="https://www.rik.parlament.gov.rs/export-results/680072/2">Podaci po biračkim mjestima (CSV)</a></dd></div>
               <div><dt>Stanovništvo · RZS</dt><dd>Godišnji prosjek broja stanovnika za 2025. za broj stanovnika i gustinu. <a href="https://publikacije.stat.gov.rs/G2026/HtmlL/G20261178.html">Procjene stanovništva, tabele 4 i 6</a></dd></div>
               <div><dt>Razvijenost · Vlada RS</dt><dd>Zvanične grupe razvijenosti jedinica lokalne samouprave prema <a href="https://ras.gov.rs/uploads/2020/05/uredba-o-utvrdivanju-jedinstvene-liste-razvijenosti-regiona-i-jedinica.pdf">uredbi za 2014. godinu</a>.</dd></div>
               <div><dt>Prosječna neto zarada · RZS</dt><dd>Prosjek za januar-decembar 2025. prema opštini prebivališta zaposlenih. Izvorni iznosi su u dinarima (<a href="https://publikacije.stat.gov.rs/G2026/HtmlL/G20261050.html">RZS, tabela 4</a>); prikaz u eurima je približan, po prosječnom kursu za 2025: 1 EUR = 117,2026 RSD (<a href="https://www.nbs.rs/export/sites/NBS_site/documents-eng/publikacije/sb/sb_03_26.pdf">NBS, statistički bilten</a>). XLSX zadržava izvorne dinarske iznose.</dd></div>
@@ -443,7 +443,7 @@
           <section aria-labelledby="notes-method-heading">
             <h3 id="notes-method-heading">Kako se računaju pokazatelji</h3>
             <ul class="notes-list">
-              <li><strong>Izbori:</strong> udjeli glasova za Lista3 i Lista1 računaju se od važećih glasova; razlika je broj glasova za Lista3 minus broj glasova za Lista1. Udio nevažećih listića računa se od listića pronađenih u kutijama, a izlaznost od upisanih birača.</li>
+              <li><strong>Izbori:</strong> udjeli glasova za SL i SNS računaju se od važećih glasova; razlika je broj glasova za SL minus broj glasova za SNS. Udio nevažećih listića računa se od listića pronađenih u kutijama, a izlaznost od upisanih birača.</li>
               <li><strong>Demografija:</strong> gustina je godišnji prosjek stanovnika 2025. podijeljen površinom. Svih pet starosnih udjela koristi Popis 2022. i ukupno stanovništvo opštine iz tog popisa kao imenilac; razredi se ne preklapaju. Udio višeg ili visokog obrazovanja odnosi se na stanovnike od 15 godina naviše iz Popisa 2022.</li>
               <li><strong>Razvijenost:</strong> I je iznad republičkog prosjeka, II 80-100%, III 60-80%, IV ispod 60%. Devastirane opštine (ispod 50%) prikazane su zasebno kao V, ali po uredbi pripadaju grupi IV. Podaci su iz 2014, a ne procjena za 2025. ili 2026.</li>
               <li><strong>Zbirni prikazi:</strong> bez odabrane opštine polja iznad mape i XY grafikona sažimaju uključene regije. Brojevi se sabiraju; izborni udjeli, izlaznost i gustina računaju se iz zbirnih vrijednosti. Starosni udjeli računaju se iz zbira stanovnika po razredima i ukupnog broja stanovnika Popisa 2022. u opštinama s dostupnim podatkom. Udio višeg/visokog obrazovanja ponderisan je procijenjenim stanovništvom 2025.</li>

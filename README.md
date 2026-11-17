@@ -1,6 +1,6 @@
 # Izborna geografija Srbije
 
-Nezavisan interaktivni prikaz rezultata parlamentarnih izbora 2026. po opštinama i regijama Srbije. Prikazani su rezultati za Lista1 (SNS) i Lista3 (Studentska lista), zajedno s odabranim statističkim pokazateljima.
+Nezavisan interaktivni prikaz rezultata parlamentarnih izbora 2026. po opštinama i regijama Srbije. Prikazani su rezultati za SNS i SL (Studentska lista), zajedno s odabranim statističkim pokazateljima.
 
 **[Otvori interaktivni prikaz](https://milangr.github.io/izborna-geografija-srbije/)**
 

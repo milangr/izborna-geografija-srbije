@@ -59,7 +59,7 @@ sheet.getRange('J:J').format.columnWidth = 38;
 sheet.getRange(`${wageColumn}:${wageColumn}`).format.columnWidth = 32;
 sheet.getRange(layout.dataRange('A')).format.numberFormat = '#,##0';
 sheet.getRange(layout.dataRange(wageColumn)).format.numberFormat = '#,##0';
-const percentHeaders = ['Udio Lista3 (%)', 'Udio Lista1 (%)', 'Nevažeći listići (%)',
+const percentHeaders = ['Udio SL (%)', 'Udio SNS (%)', 'Nevažeći listići (%)',
   'Izlaznost (%)', 'Uzrast 0-14 (%)', 'Uzrast 15-29 (%)', 'Uzrast 30-44 (%)',
   'Uzrast 45-64 (%)', 'Uzrast 65+ (%)', 'Više ili visoko obrazovanje (2022) (%)'];
 for (let c = 6; c <= rows[0].length - 2; c++) {

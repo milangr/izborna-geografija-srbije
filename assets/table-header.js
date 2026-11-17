@@ -159,7 +159,7 @@
       label.textContent = column.label;
       button.append(label);
       const headingLines = column.key === 'voteDifference'
-        ? ['Razlika', 'glasova', '(Lista3 - Lista1)'] : null;
+        ? ['Razlika', 'glasova', '(SL - SNS)'] : null;
       if (headingLines) {
         button.classList.add('is-three-line');
         button.setAttribute('aria-label', column.label);
