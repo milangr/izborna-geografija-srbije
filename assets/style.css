@@ -650,7 +650,7 @@ a { color: #225c92; }
 }
 
 .selection-summary { display: none; }
-@media (min-width: 1880px) {
+@media (min-width: 1880px), (min-width: 960px) and (max-width: 1180px) {
   .selection-summary { display: flex; flex-direction: column; position: fixed; top: 5rem; bottom: 1.25rem; left: calc(50% + 610px); width: min(320px, calc(50vw - 626px)); z-index: 2; }
   .selection-summary .panel-header { flex: none; padding: .8rem .9rem; }
   .selection-summary .panel-header h2 { font-size: 1rem; }
@@ -684,3 +684,9 @@ a { color: #225c92; }
 }
 
 .selection-summary-age-track.is-difference-scale .selection-summary-age-bar.is-negative { margin-left: auto; background: #d88659; }
+
+/* Keep a readable single chart column beside the selection summary. */
+@media (min-width: 960px) and (max-width: 1180px) {
+  .shell { width: calc(100% - 316px); margin-left: 0; margin-right: 316px; }
+  .selection-summary { left: auto; right: 1rem; width: 300px; }
+}
